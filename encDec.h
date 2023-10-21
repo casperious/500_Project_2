@@ -1,0 +1,11 @@
+int producer();
+int encode(char *inData,char *len, char* fdOut_One,char* isCap);
+int decode(char** blocks);
+int toUpper(char* str, char* len,char* fdIn_One);
+int consumer(char* fdOut,char* fdIn);
+void addParity(char *inData, char* fdOut_One,char* isCap);
+void addHamming(char *inData, char* fdOut_One, char* isCap);
+void buildFrame(char *inData, char* fdOut_One,char* isCap);
+int deframe(char *inData, char* fdIn_One);
+int checkRemoveParity(char** characters);
+int error(char *inData, char* len, char* fdOut_One,char* isCap);
