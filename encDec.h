@@ -6,6 +6,7 @@ int consumer(char* fdOut,char* fdIn);
 void addParity(char *inData, char* fdOut_One,char* isCap);
 void addHamming(char *inData, char* fdOut_One, char* isCap);
 void addCRC(char* inData, char* fdOut_One, char* isCap);
+void checkCRC(char* inData, char* fdOut_One, char* isCap);
 void removeHamming(char *inData, char* fdOut_One, char* isCap);
 void buildFrame(char *inData, char* fdOut_One,char* isCap);
 int deframe(char *inData, char* fdIn_One);
