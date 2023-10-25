@@ -18,6 +18,10 @@ int main(){
 	
 	int pid;
 	
+	char flag[2];
+	printf("Enter h for hamming, or c for crc32\n");
+	scanf("%s",flag);
+	
 	ptr = fopen("data.inpf","r");				//open inpf to read
 	binf = fopen("data.binf","w");				//wipe data.binf
 	fclose(binf);
@@ -55,7 +59,7 @@ int main(){
 		sprintf(arg1,"%d",fdOut[0]);
 		char arg2[4];
 		sprintf(arg2,"%d",fdIn[1]);
-		execl("consumer","consumer",arg1,arg2,NULL);						//create consumer, with fdOut[0] to read from, and fdIn[1] to write to
+		execl("consumer","consumer",arg1,arg2,flag,NULL);						//create consumer, with fdOut[0] to read from, and fdIn[1] to write to
 	}
 	else if(consPid>0)
 	{
@@ -86,7 +90,7 @@ int main(){
 					newPid=fork();
 					if(newPid==0)
 					{
-						execl("errorService","errorService",str,"64",arg,"0",NULL);		//call error service if numFrames is 3 i.e. 3rd frame
+						execl("errorService","errorService",str,"64",arg,"0", flag,NULL);		//call error service if numFrames is 3 i.e. 3rd frame
 					}
 					else if(newPid>0)
 					{
@@ -102,7 +106,7 @@ int main(){
 					if(newPid==0)
 					{
 						
-						execl("encoderService","encoderService",str,"64",arg,"0",NULL);	//if not 3rd frame, then call encoder service with 64 char string, length of 64, fdOut[1], isCap="0"
+						execl("encoderService","encoderService",str,"64",arg,"0",flag,NULL);	//if not 3rd frame, then call encoder service with 64 char string, length of 64, fdOut[1], isCap="0"
 					}
 					else if(newPid>0)
 					{
@@ -132,7 +136,7 @@ int main(){
 			pid = fork();
 			if(pid==0)
 			{
-				execl("errorService","errorService",str,countStr,arg,"0",NULL);
+				execl("errorService","errorService",str,countStr,arg,"0",flag,NULL);
 			}
 			else if(pid>0)
 			{
@@ -147,7 +151,7 @@ int main(){
 		{
 			pid=fork();
 			if(pid==0){
-				execl("encoderService","encoderService",str,countStr,arg,"0",NULL);		
+				execl("encoderService","encoderService",str,countStr,arg,"0",flag,NULL);		
 			}
 			else if(pid>0){
 				wait(NULL);

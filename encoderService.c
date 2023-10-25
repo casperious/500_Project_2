@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-	encode(argv[1],argv[2],argv[3],argv[4]);
+	encode(argv[1],argv[2],argv[3],argv[4],argv[5]);
 	return 0;
 }
 
@@ -20,9 +20,9 @@ Args:-
 	len = length of string to be encoded
 	fdOut_One = file descriptor for pipe to write to. Different if producer is calling, or if consumer's child is calling it.
 	isCap = flag to check if consumer child is calling, or if producer is.
-	
+	flag = flag for hamming or crc
 */
-int encode(char *inData,char* len, char* fdOut_One, char* isCap){
+int encode(char *inData,char* len, char* fdOut_One, char* isCap,char* flag){
 	char bin[1025]="";												//binary encoding of length + characters
 	int length;
 	sscanf(len,"%d",&length);										//storing len as an int
@@ -55,7 +55,7 @@ int encode(char *inData,char* len, char* fdOut_One, char* isCap){
 	int pid;
 	pid = fork();
 	if(pid==0){
-		execl("parityAddService","parityAddService",bin,fdOut_One,isCap,NULL);			//call parityAddService with binary encoded string, fd to write to, isCap
+		execl("parityAddService","parityAddService",bin,fdOut_One,isCap,flag,NULL);			//call parityAddService with binary encoded string, fd to write to, isCap
 	}
 	else if(pid>0)
 	{

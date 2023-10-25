@@ -41,6 +41,7 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap){
 		fputs(frame,fp); 	
 	}
 	fclose(fp);												//close file written to
+	printf("Writing %s to %d\n",frame,fdOut);
 	write(fdOut,frame,sizeof(frame));						//write to pipe, be it fdOut or fdIn
 	return;
 }

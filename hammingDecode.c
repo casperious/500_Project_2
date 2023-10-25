@@ -8,20 +8,48 @@
 
 int main(int argc, char *argv[])
 {
-	removeHamming(argv[1],argv[2],argv[3]);
+	removeHamming(argv);
 	return 0;
 }
 
-void removeHamming(char *inData, char* fdOut_One,char* isCap)
+void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isCap
 {
+	printf("In hamming decode\n");
+	char* inData=calloc(69*8,sizeof(char));
+	int k =0;
+	for(int i = 4;i<100;i++)
+	{
+		if(characters[i]==NULL)
+		{
+			printf("breaking at %d\n",i);
+			break;
+		}
+		printf("Looking at %s at %d\n",characters[i],i);
+		for(int j =0;j<strlen(characters[i]);j++)
+		{
+			if(characters[i][j]!='1' && characters[i][j]!='0')
+			{
+				break;
+			}
+			inData[k]=characters[i][j];
+			printf("%c",inData[k]);
+			k++;
+		}
+		
+		printf("\n");
+	}
+	printf("inData is now\n");
+	inData[k]='\0';
+	printf("%s\n",inData);
 	int errPos = 0;
 	int len = strlen(inData);
-	//printf("%d\n",len);
+	printf("%d\n",len);
 	int numParity = 0;
 	while(pow(2,numParity)<len)
 	{
 		numParity+=1;
 	}
+	printf("numParity is %d\n",numParity);
 	int i =0;
 	while(i<numParity)
 	{
@@ -97,7 +125,60 @@ void removeHamming(char *inData, char* fdOut_One,char* isCap)
 		}	
 	
 	}
+	decoded[len-numParity] = '\0';
+	//build back into blocks and send to checkRemove
+	printf("chars[1] is %s\n",characters[1]);
+	char* send[69]={"checkRemoveParityService",characters[1],characters[2],characters[3]};
+	int x =0;
+	int y =4;
+	char block[9]="00000000";
+	for(int i =0;i<strlen(decoded)+1;i++)									//loop through inData and split into 8 char blocks
+	{
+		if(decoded[i]=='\0')
+		{
+			break;
+		}
+		if(x<=7)
+		{
+			block[x]=decoded[i];
+			x++;
+		}
+		else
+		{
+			send[y]=strdup(block);									//save block into characters[k]
+			x = 0;
+			block[x]=decoded[i];
+			x++;
+			y++;
+		}
+	}
 	printf("%s\n",decoded);
+	free(inData);
 	free(decoded);
+	for(int i =0;i<69;i++)
+	{
+		if(send[i]==NULL)
+		{
+			break;
+		}
+		printf("%s\n",send[i]);
+	}
+	int pid;
+	printf("Calling fork\n");
+	pid = fork();
+	if(pid==0)
+	{	
+		printf("sending to removeParity\n");
+		execv("checkRemoveParityService",send);	
+	}
+	else if(pid>0)
+	{
+		printf("Waiting in hamming decode\n");
+		wait(NULL);
+	}
+	else
+	{
+		printf("fork in hammingDecode failed\n");
+	}
 	
 }

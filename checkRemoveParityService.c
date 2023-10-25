@@ -21,6 +21,7 @@ Args:-
 */
 int checkRemoveParity(char** characters)		
 {
+	printf("In checkRemPar\n");
 	int numCharsNumOnes = 0;			
 	if(characters[4][0]=='0')					//checking parity for numChars
 	{
@@ -54,7 +55,7 @@ int checkRemoveParity(char** characters)
 	char lenBin[7]="";
 	memcpy(lenBin,&characters[4][1],7);
 	int numChars = (int)strtol(lenBin,NULL,2);								//get number of characters in string
-	
+	printf("NumChars is %d\n",numChars);
 	char* removedBitsChars[numChars+3];										//+1 for decoder, +1 for fdIn[1], +1 for null. Argument string
 	int len = sizeof(removedBitsChars)/sizeof(*removedBitsChars);			//length of newly declared char**
 	removedBitsChars[0]="decoder";

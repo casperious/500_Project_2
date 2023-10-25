@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-	consumer(argv[1],argv[2]);
+	consumer(argv[1],argv[2],argv[3]);
 	return 0;
 }
 
@@ -21,13 +21,14 @@ Args:-
 	
 */
 
-int consumer(char* fdOut_Zero,char* fdIn_One)
+int consumer(char* fdOut_Zero,char* fdIn_One,char* flag)
 {
 	int fdOut;
 	sscanf(fdOut_Zero,"%d",&fdOut);
 	int fdIn;
 	sscanf(fdIn_One, "%d", &fdIn);
 	char buff[1025];
+	printf("flag in consumer is %s\n",flag);
 	ssize_t inp;
 	while((inp=read(fdOut,buff,sizeof(buff)))>0)					//read from fdOut till producer closes. Store frame into buff
 	{
@@ -35,7 +36,7 @@ int consumer(char* fdOut_Zero,char* fdIn_One)
 		pid1 = fork();
 		if(pid1==0)
 		{
-			execl("deframe","deframe",buff,fdIn_One,NULL);			//call deframe for every frame read
+			execl("deframe","deframe",buff,fdIn_One,flag,NULL);			//call deframe for every frame read
 		}
 		else if (pid1>0)
 		{

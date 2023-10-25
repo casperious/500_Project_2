@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[])
 {
-	error(argv[1],argv[2],argv[3],argv[4]);
+	error(argv[1],argv[2],argv[3],argv[4],argv[5]);
 	return 0;
 }
 
@@ -20,11 +20,11 @@ Args:-
 	len = length of string to be encoded
 	fdOut_One = file descriptor of pipe to write to
 	isCap = flag for if consumer called, or producer
-	
+	flag = flag for if hamming or crc
 */
 
 
-int error(char *inData,char* len, char* fdOut_One,char* isCap){
+int error(char *inData,char* len, char* fdOut_One,char* isCap,char* flag){
 
 	char bin[1025]="";											//binary encoding of length + characters
 	int length;
@@ -70,7 +70,7 @@ int error(char *inData,char* len, char* fdOut_One,char* isCap){
 	int pid;
 	pid = fork();
 	if(pid==0){
-		execl("parityAddService","parityAddService",bin,fdOut_One,isCap,NULL);		//pass erroneous string to parityAdd with pipe fd and isCap
+		execl("parityAddService","parityAddService",bin,fdOut_One,isCap,flag,NULL);		//pass erroneous string to parityAdd with pipe fd and isCap
 	}
 	else if(pid>0)
 	{
