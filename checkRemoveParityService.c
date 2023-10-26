@@ -21,7 +21,7 @@ Args:-
 */
 int checkRemoveParity(char** characters)		
 {
-	printf("In checkRemPar\n");
+	//printf("In checkRemPar  %s\n",characters[4]);
 	int numCharsNumOnes = 0;			
 	if(characters[4][0]=='0')					//checking parity for numChars
 	{
@@ -39,6 +39,7 @@ int checkRemoveParity(char** characters)
 	}
 	else
 	{
+	//printf("First char is 1\n");
 		for(int i =1;i<8;i++)
 		{
 			if(characters[4][i]=='1')
@@ -55,14 +56,21 @@ int checkRemoveParity(char** characters)
 	char lenBin[7]="";
 	memcpy(lenBin,&characters[4][1],7);
 	int numChars = (int)strtol(lenBin,NULL,2);								//get number of characters in string
-	printf("NumChars is %d\n",numChars);
+	//printf("NumChars is %d\n",numChars);
 	char* removedBitsChars[numChars+3];										//+1 for decoder, +1 for fdIn[1], +1 for null. Argument string
 	int len = sizeof(removedBitsChars)/sizeof(*removedBitsChars);			//length of newly declared char**
+	//printf("len is %d\n",len);
 	removedBitsChars[0]="decoder";
 	removedBitsChars[1]=characters[1];
 	int k =2;
 	for(int i = 5;i<=numChars+4;i++)										//loop through 8 character blocks in argument passed
-	{
+	{	
+		if(characters[i]==NULL)
+		{
+			//printf("Null encountered, breaking\n");
+			break;
+		}
+		//printf("At %s\n",characters[i]);
 		char block[8];
 		if(characters[i][0]=='0')											//check for odd parity
 		{
@@ -97,9 +105,11 @@ int checkRemoveParity(char** characters)
 			strncpy(block,characters[i]+1,7);
 		}	
 		removedBitsChars[k]=strdup(block);									//save block to argument string
+		//printf("%s\n",removedBitsChars[k]);
 		k++;
 	}
-	removedBitsChars[len-1]=NULL;											//set last argument to NULL
+	removedBitsChars[len]=NULL;											//set last argument to NULL
+	printf("Before fork\n");
 	int pid;
 	pid = fork();
 	if(pid==0)

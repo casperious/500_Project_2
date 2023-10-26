@@ -15,7 +15,7 @@ void addHamming(char *inData, char* fdOut_One,char* isCap)
 {
 	
 	int len = strlen(inData);
-	//printf("%s is of length %d\n",inData,len);
+	printf("%s is of length %d\n",inData,len);
 	int numParityBits = 1;
 	while(1)																//calculate #parity bits by checking if 2^r >= m + r + 1 [r = #parity bits, m = len of input]
 	{
@@ -33,18 +33,19 @@ void addHamming(char *inData, char* fdOut_One,char* isCap)
 	}
 	//printf("Number of parity bits to add is %d\n",numParityBits);
 	int outLen = len+numParityBits+1;
-	printf("outLen is %d\n",outLen);
+	//printf("outLen is %d\n",outLen);
 	//printf("2^r is %f\n",pow(2,numParityBits));
 	/*if(pow(2,numParityBits)>=outLen)
 	{
 		printf("Correct\n");
 	}*/
-	char* outData = calloc(outLen,sizeof(char));
+	char* outData = calloc(outLen+1,sizeof(char));
 	//printf("%s\n",outData);
 	for(int i =0;i<len+numParityBits;i++)
 	{
 		outData[i]='0';
 	}
+	outData[strlen(outData)]='\0';
 		
 	/*for(int i =0;i<outLen;i++)
 	{
@@ -91,7 +92,7 @@ void addHamming(char *inData, char* fdOut_One,char* isCap)
 	for(int i =0;i<numParityBits;i++)
 	{
 		int numSkip = pow(2,i);
-		//printf("checking %d and skipping %d\n",numSkip,numSkip);
+		//printf("checking %d and skipping %d on %s\n",numSkip,numSkip,outData);
 		int up = 0;
 		int down = 0;
 		int parity = 0;
@@ -131,15 +132,15 @@ void addHamming(char *inData, char* fdOut_One,char* isCap)
 			outData[numSkip-1]='0';
 		}
 	
-	}
-	/*for(int i =0;i<outLen;i++)
+	}/*
+	for(int i =0;i<outLen;i++)
 	{
 		printf("%c",outData[i]);
 	}
-	printf(" with length %ld\n",strlen(outData));				//001011101111 vs 111011101111
-	*/
-	outData[outLen] = '\0';
-	printf("Outlen is %ld\n",strlen(outData));	
+	printf(" with length %ld\n",strlen(outData));	*/			//001011101111 vs 111011101111
+	//printf("hamming encoded outData is %s \n with length %ld\n",outData,strlen(outData));
+	//outData[outLen] = '\0';
+	//printf("Outlen is %ld\n",strlen(outData));	
 	int pid;
 	pid = fork();
 	if(pid==0)

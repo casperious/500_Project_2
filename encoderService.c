@@ -27,6 +27,7 @@ int encode(char *inData,char* len, char* fdOut_One, char* isCap,char* flag){
 	int length;
 	sscanf(len,"%d",&length);										//storing len as an int
 	int num = length;
+	printf("length of input is %d\n",num);
 	int j =6;
 	char res[7]="0000000";
 	while(num>0)													//converting length of string into its binary encoded 7 character string

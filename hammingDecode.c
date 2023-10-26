@@ -21,10 +21,10 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 	{
 		if(characters[i]==NULL)
 		{
-			printf("breaking at %d\n",i);
+			//printf("breaking at %d\n",i);
 			break;
 		}
-		printf("Looking at %s at %d\n",characters[i],i);
+		//printf("Looking at %s at %d\n",characters[i],i);
 		for(int j =0;j<strlen(characters[i]);j++)
 		{
 			if(characters[i][j]!='1' && characters[i][j]!='0')
@@ -32,15 +32,15 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 				break;
 			}
 			inData[k]=characters[i][j];
-			printf("%c",inData[k]);
+			//printf("%c",inData[k]);
 			k++;
 		}
 		
-		printf("\n");
+		//printf("\n");
 	}
-	printf("inData is now\n");
+	//printf("inData is now\n");
 	inData[k]='\0';
-	printf("%s\n",inData);
+	//printf("%s\n",inData);
 	int errPos = 0;
 	int len = strlen(inData);
 	printf("%d\n",len);
@@ -116,23 +116,24 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 	{
 		if(ceil(log2(i+1))==floor(log2(i+1)))
 		{
-			printf("parity bit %c at %d being removed\n",inData[i],i);
+			//printf("parity bit %c at %d being removed\n",inData[i],i);
 		}
 		else
 		{
 			decoded[j]=inData[i];
 			j+=1;
+			
 		}	
 	
 	}
 	decoded[len-numParity] = '\0';
 	//build back into blocks and send to checkRemove
-	printf("chars[1] is %s\n",characters[1]);
-	char* send[69]={"checkRemoveParityService",characters[1],characters[2],characters[3]};
+	//printf("chars[1] is %s\n",characters[1]);
+	char* send[100]={"checkRemoveParityService",characters[1],characters[2],characters[3]};
 	int x =0;
 	int y =4;
 	char block[9]="00000000";
-	for(int i =0;i<strlen(decoded)+1;i++)									//loop through inData and split into 8 char blocks
+	for(int i =0;i<strlen(decoded);i++)									//loop through inData and split into 8 char blocks
 	{
 		if(decoded[i]=='\0')
 		{
@@ -145,6 +146,7 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 		}
 		else
 		{
+			block[x]='\0';
 			send[y]=strdup(block);									//save block into characters[k]
 			x = 0;
 			block[x]=decoded[i];
@@ -152,17 +154,18 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 			y++;
 		}
 	}
-	printf("%s\n",decoded);
+	printf("%s of length %ld\n",decoded,strlen(decoded));
+	printf("last block is %s\n",block);
 	free(inData);
 	free(decoded);
-	for(int i =0;i<69;i++)
+	/*for(int i =0;i<69;i++)
 	{
 		if(send[i]==NULL)
 		{
 			break;
 		}
 		printf("%s\n",send[i]);
-	}
+	}*/
 	int pid;
 	printf("Calling fork\n");
 	pid = fork();

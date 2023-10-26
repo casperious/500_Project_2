@@ -34,13 +34,13 @@ int deframe(char* inData,char* fdIn_One,char* flag)
 		characters[0] = "checkRemoveParityService";
 	}
 	//printf("%s\n",characters[0]);
+	//printf("Read %s in deframe\n",inData);
 	characters[1] = fdIn_One;
 	int j =0;
 	int k =2;
 	char block[9]="00000000";
 	for(int i =0;i<strlen(inData)+1;i++)									//loop through inData and split into 8 char blocks
 	{
-		
 		if(j<=7)
 		{
 			block[j]=inData[i];
@@ -50,11 +50,29 @@ int deframe(char* inData,char* fdIn_One,char* flag)
 		{
 			characters[k]=strdup(block);									//save block into characters[k]
 			j = 0;
+			/*if((strlen(inData)-i)<=7)
+			{
+				k++;
+				strncpy(characters[k],inData+i,strlen(inData)+1-i);
+				printf("last block is %s\n",characters[k]);
+				break;
+			}*/
 			block[j]=inData[i];
 			j++;
 			k++;
 		}
 	}
+	if(j>1){
+	printf("last block outside loop is %s %d %s\n", characters[k],j,block);
+	characters[k] = strdup(block);											//to get remainder bits
+	printf("last block outside loop is %s %d %s %ld\n", characters[k],j,block,strlen(characters[k]));
+	}/*
+	char* end = "";
+	for(int i =0;i<j;i++)
+	{
+		strncat
+	}
+	*/
 	if(strcmp(characters[2],"00010110")!=0 || strcmp(characters[3],"00010110")!=0)			//check if first 2 characters are 22 22
 	{
 		printf("Incorrect syn chars characters[2] = %s chars[3] = %s\n",characters[2],characters[3]);
