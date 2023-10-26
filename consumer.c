@@ -36,7 +36,15 @@ int consumer(char* fdOut_Zero,char* fdIn_One,char* flag)
 		pid1 = fork();
 		if(pid1==0)
 		{
-			execl("deframe","deframe",buff,fdIn_One,flag,NULL);			//call deframe for every frame read
+			if(flag[0]=='h')
+			{
+				execl("deframe","deframe",buff,fdIn_One,flag,NULL);			//call deframe for every frame read
+			}
+			else
+			{
+				execl("crcCheck","crcCheck",buff,fdIn_One,flag,NULL);
+			}
+			
 		}
 		else if (pid1>0)
 		{

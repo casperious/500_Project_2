@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-	buildFrame(argv[1],argv[2],argv[3]);
+	buildFrame(argv[1],argv[2],argv[3],argv[4]);
 	return 0;
 }
 
@@ -21,7 +21,7 @@ Args:-
 
 */
 
-void buildFrame(char *inData,char* fdOut_One,char* isCap){
+void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag){
 	int fdOut;
 	sscanf(fdOut_One,"%d",&fdOut);									//extract fd to write to
 	char syn[8] = "00010110";										//hard code parity bit binary encoded SYN (22)
@@ -42,6 +42,22 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap){
 	}
 	fclose(fp);												//close file written to
 	//printf("Writing %s of length %ld to %d\n",frame,strlen(frame),fdOut);
-	write(fdOut,frame,sizeof(frame));						//write to pipe, be it fdOut or fdIn
+	if(flag[0]=='h')
+	{
+		write(fdOut,frame,sizeof(frame));						//write to pipe, be it fdOut or fdIn
+	}
+	else
+	{
+		int pid;
+		pid = fork();
+		if(pid==0)
+		{
+			execl("crcAdd","crcAdd",frame,fdOut_One,isCap,flag,NULL);
+		}
+		else if(pid>0)
+		{
+			wait(NULL);	
+		}
+	}
 	return;
 }

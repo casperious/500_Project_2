@@ -32,9 +32,10 @@ char* XOR(char* x, char* y)
 	return retString;
 }
 
-void checkCRC(char* inData, char* fdOut_One, char* isCap)
+void checkCRC(char* inData, char* fdIn_One, char* flag)
 {
 	int i =0;
+	printf("InData in checkCRC is %s of length %ld\n",inData,strlen(inData));
 	char*  check = malloc(strlen(inData));
 	for(int k=0;k<strlen(inData);k++)
 	{
@@ -42,6 +43,7 @@ void checkCRC(char* inData, char* fdOut_One, char* isCap)
 	}
 	check[strlen(inData)]='\0';	
 	printf("check is %s with len %ld\n",check,strlen(check));
+	printf("Comparing inData and check %d\n",strcmp(inData,check));
 	while(i+strlen(crc_gen)<strlen(inData))
 	{
 		if(check[i]=='0')
@@ -50,12 +52,12 @@ void checkCRC(char* inData, char* fdOut_One, char* isCap)
 		}
 		else
 		{
-			printf("%s\n",check);
+			/*printf("%s\n",check);
 			for(int j = 0;j<i;j++)
 			{
 				printf(" ");
-			}
-			printf("%s\n",crc_gen);
+			}*/
+			//printf("%s\n",crc_gen);
 			char* xor_string = calloc(strlen(inData),sizeof(char));
 			char* x = calloc(strlen(crc_gen),sizeof(char));
 			for(int j = i;j<strlen(crc_gen)+i;j++)
@@ -100,9 +102,29 @@ void checkCRC(char* inData, char* fdOut_One, char* isCap)
 		}
 	}
 	free(check);
-	
+	char* send = calloc(strlen(inData)-strlen(crc_gen)+2,sizeof(char));
+	//strncpy(send,inData,strlen(inData)-strlen(crc_gen)+1);
+	for(int i =0;i<strlen(inData)-strlen(crc_gen)+1;i++)
+	{
+		send[i]=inData[i];
+	}
+	send[strlen(send)]='\0';
+	printf("sending %s of length %ld\n",send, strlen(send));
 	check=NULL;
-	
-
+	int pid;
+	pid = fork();
+	if(pid==0)
+	{
+		execl("deframe","deframe",send,fdIn_One,flag,NULL);
+	}
+	else if (pid>0)
+	{
+		wait(NULL);
+	}
+	else
+	{
+		printf("Failed fork");
+	}
+	return;
 
 }

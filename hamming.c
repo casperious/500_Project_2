@@ -7,11 +7,11 @@
 #include <math.h>
 int main(int argc, char *argv[])
 {
-	addHamming(argv[1],argv[2],argv[3]);
+	addHamming(argv[1],argv[2],argv[3],argv[4]);
 	return 0;
 }
 
-void addHamming(char *inData, char* fdOut_One,char* isCap)
+void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag)
 {
 	
 	int len = strlen(inData);
@@ -145,7 +145,7 @@ void addHamming(char *inData, char* fdOut_One,char* isCap)
 	pid = fork();
 	if(pid==0)
 	{
-		execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,NULL);
+		execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,flag,NULL);
 	}
 	else if(pid>0)
 	{

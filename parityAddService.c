@@ -65,11 +65,12 @@ void addParity(char *inData, char* fdOut_One,char* isCap,char* flag)
 	{
 		if(flag[0]=='h')
 		{
-			execl("hamming","hamming",outData,fdOut_One,isCap,NULL);
+			execl("hamming","hamming",outData,fdOut_One,isCap,flag,NULL);
 		}
 		else
 		{
-			execl("crcAdd","crcAdd",outData,fdOut_One,isCap,NULL);
+			//execl("crcAdd","crcAdd",outData,fdOut_One,isCap,NULL);
+			execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,flag,NULL);		//call buildFrameService with 8 char, parity bit, binary encoded string, fd to write to, and isCap
 		}
 		//execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,NULL);		//call buildFrameService with 8 char, parity bit, binary encoded string, fd to write to, and isCap
 	}

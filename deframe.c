@@ -23,6 +23,7 @@ Args:-
 
 int deframe(char* inData,char* fdIn_One,char* flag)
 {
+	printf("In Deframe\n");
 	//char* characters[69]={"checkRemoveParityService",fdIn_One};				//intialize argument string for execv with service name, pipe fd
 	char* characters[100]={};
 	if(flag[0]=='h')
@@ -33,8 +34,8 @@ int deframe(char* inData,char* fdIn_One,char* flag)
 	{
 		characters[0] = "checkRemoveParityService";
 	}
-	//printf("%s\n",characters[0]);
-	//printf("Read %s in deframe\n",inData);
+	printf("%s\n",characters[0]);
+	printf("Read %s in deframe\n",inData);
 	characters[1] = fdIn_One;
 	int j =0;
 	int k =2;

@@ -10,7 +10,7 @@ char* crc_gen = "100000100110000010001110110110111"; //x32+ x26+ x23+ x22+ x16+ 
 	
 int main(int argc, char *argv[])
 {
-	addCRC(argv[1],argv[2],argv[3]);
+	addCRC(argv[1],argv[2],argv[3],argv[4]);
 	return 0;
 }
 
@@ -32,14 +32,14 @@ char* XOR(char* x, char* y)
 	return retString;
 }
 
-void addCRC(char* inData, char* fdOut_One, char* isCap)
+void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag)
 {
 	int len = strlen(inData);
 	printf("length of generator is %ld and length of indata is %ld\n",strlen(crc_gen),strlen(inData));
 	int outLen = len+strlen(crc_gen)-1;
 	printf("%d\n",outLen);
 	char* extendedData = malloc(outLen+1);
-	printf("%ld\n",strlen(extendedData));
+	//printf("%ld\n",strlen(extendedData));
 	for(int i =0;i<outLen;i++)
 	{
 		if(i<len)
@@ -53,8 +53,8 @@ void addCRC(char* inData, char* fdOut_One, char* isCap)
 		//printf("%c %ld %d\n",extendedData[i],strlen(extendedData),i);
 	}
 	extendedData[outLen]='\0';
-	printf("\n-----------------------------------------\n");
-	printf("inData with padded 0's is of length %ld is %s \n",strlen(extendedData),extendedData);
+	printf("-----------------------------------------\n");
+	//printf("inData with padded 0's is of length %ld is %s \n",strlen(extendedData),extendedData);
 	int i =0;
 	while(i+strlen(crc_gen)<outLen)
 	{
@@ -65,12 +65,12 @@ void addCRC(char* inData, char* fdOut_One, char* isCap)
 		}
 		else
 		{
-			printf("%s len %ld\n",extendedData,strlen(extendedData));
-			for(int j = 0;j<i;j++)
+			//printf("%s len %ld\n",extendedData,strlen(extendedData));
+			/*for(int j = 0;j<i;j++)
 			{
 				printf(" ");
-			}
-			printf("%s len %ld\n",crc_gen,strlen(crc_gen));
+			}*/
+			//printf("%s len %ld\n",crc_gen,strlen(crc_gen));
 			char* xor_string = calloc(outLen,sizeof(char)+1);
 			char* x = calloc(strlen(crc_gen),sizeof(char)+1);
 			for(int j = i;j<strlen(crc_gen)+i;j++)
@@ -108,13 +108,13 @@ void addCRC(char* inData, char* fdOut_One, char* isCap)
 		}
 	}
 	char* rem = malloc(strlen(crc_gen));
-	printf("extracting remainder from %s\n",extendedData);
+	//printf("extracting remainder from %s\n",extendedData);
 	for(int i =strlen(inData);i<outLen;i++)
 	{
 		rem[i-strlen(inData)]=extendedData[i];
 	}
 	rem[strlen(crc_gen)-1]='\0';
-	printf("Remainder is %s of length %ld\n",rem,strlen(rem));
+	//printf("Remainder is %s of length %ld\n",rem,strlen(rem));
 	char* encodedString = malloc(outLen+1);
 	for(int i =0;i<outLen;i++)
 	{
@@ -129,6 +129,9 @@ void addCRC(char* inData, char* fdOut_One, char* isCap)
 	}
 	
 	printf("encoded string is %s of length %ld\n",encodedString,strlen(encodedString));
+	int fdOut;
+	sscanf(fdOut_One,"%d",&fdOut);									//extract fd to write to
+	write(fdOut,encodedString,1025);
 	free(extendedData);
 	free(rem);
 	free(encodedString);
