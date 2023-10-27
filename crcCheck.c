@@ -16,9 +16,8 @@ int main(int argc, char *argv[])
 
 char* XOR(char* x, char* y)
 {
-	int len = strlen(y);
 	char* retString = calloc(strlen(crc_gen),sizeof(char));													//hardcoded length of divisor
-	for(int i =0;i<strlen(y);i++)
+	for(int i =0;i<strlen(crc_gen);i++)
 	{
 		if(x[i]==y[i])
 		{
@@ -29,6 +28,7 @@ char* XOR(char* x, char* y)
 			retString[i]='1';
 		}
 	}
+	retString[strlen(retString)]='\0';
 	return retString;
 }
 
@@ -36,7 +36,8 @@ void checkCRC(char* inData, char* fdIn_One, char* flag)
 {
 	int i =0;
 	printf("InData in checkCRC is %s of length %ld\n",inData,strlen(inData));
-	char*  check = malloc(strlen(inData));
+	printf("length of crcGen is %ld\n",strlen(crc_gen));
+	char*  check = calloc(strlen(inData),sizeof(char));
 	for(int k=0;k<strlen(inData);k++)
 	{
 		check[k] = inData[k];
@@ -44,62 +45,80 @@ void checkCRC(char* inData, char* fdIn_One, char* flag)
 	check[strlen(inData)]='\0';	
 	printf("check is %s with len %ld\n",check,strlen(check));
 	printf("Comparing inData and check %d\n",strcmp(inData,check));
-	while(i+strlen(crc_gen)<strlen(inData))
+	char* xor_string = calloc(strlen(inData),sizeof(char));
+	char* x = calloc(strlen(crc_gen),sizeof(char));
+	while(i<strlen(inData))				//+strlen(crc_gen)
 	{
 		if(check[i]=='0')
 		{
+			xor_string[i]='0';
 			i++;
+			
 		}
 		else
 		{
-			/*printf("%s\n",check);
-			for(int j = 0;j<i;j++)
+			
+			//printf("%s\n",check);
+			/*for(int j = 0;j<i;j++)
 			{
 				printf(" ");
-			}*/
-			//printf("%s\n",crc_gen);
-			char* xor_string = calloc(strlen(inData),sizeof(char));
-			char* x = calloc(strlen(crc_gen),sizeof(char));
-			for(int j = i;j<strlen(crc_gen)+i;j++)
+			}
+			printf("%s\n",crc_gen);*/
+			
+			for(int j = i;j<strlen(crc_gen)+i;j++)		//maybe -1
 			{
 				x[j-i] = check[j];
 			}
-			for(int j =0;j<i;j++)
+			x[strlen(x)]='\0';
+			/*for(int j =0;j<i;j++)
 			{
 				xor_string[j]='0';
-			}
+			}*/
+			xor_string[strlen(xor_string)]='\0';
 			char* retstring = XOR(x,crc_gen);
-			free(x);
-			x=NULL;
+			
 			for(int j =i;j<i+strlen(crc_gen);j++)
 			{
 				xor_string[j] = retstring[j-i];
 			}
-			free(retstring);
-			retstring = NULL;
+			//free(retstring);
+			//retstring = NULL;
 			for(int j = i+strlen(crc_gen);j<strlen(inData);j++)
 			{
 				xor_string[j] = check[j];
 			}
+			xor_string[strlen(inData)]='\0';
 			//printf("XOR_String is %s\n",xor_string);
 			for(int j =0;j<strlen(inData);j++)
 			{
 				check[j] = xor_string[j];
 			}
-			free(xor_string);
-			xor_string = NULL;
+			check[strlen(inData)]='\0';
+			//printf("last char in check is %c\n",check[strlen(inData)]);
+			
 			i++;
 		}
 	}
+	printf("Remainder is %s\n",check);												//01001001000111011110011101100010
 	
-	printf("Remainder is %s\n",check);
-	for(int j =0;j<strlen(check);j++)
+	//free(x);
+	x=NULL;
+	free(xor_string);
+	xor_string = NULL;
+	int j =0;
+	//for(int j =0;j<strlen(check);j++)
+	while(j<strlen(check))
 	{
 		if(check[j]=='1')
 		{
 			printf("Data received has been corrupted during transmission\n");
 			break;
 		}
+		j++;
+	}
+	if(j==strlen(check))
+	{
+		printf("correct?\n");
 	}
 	free(check);
 	char* send = calloc(strlen(inData)-strlen(crc_gen)+2,sizeof(char));

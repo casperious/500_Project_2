@@ -35,7 +35,7 @@ char* XOR(char* x, char* y)
 void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag)
 {
 	int len = strlen(inData);
-	printf("length of generator is %ld and length of indata is %ld\n",strlen(crc_gen),strlen(inData));
+	printf("inData is %s and length of indata is %ld\n",inData,strlen(inData));
 	int outLen = len+strlen(crc_gen)-1;
 	printf("%d\n",outLen);
 	char* extendedData = malloc(outLen+1);
@@ -114,7 +114,7 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag)
 		rem[i-strlen(inData)]=extendedData[i];
 	}
 	rem[strlen(crc_gen)-1]='\0';
-	//printf("Remainder is %s of length %ld\n",rem,strlen(rem));
+	printf("Remainder is %s of length %ld\n",rem,strlen(rem));					//01001001000111011110011101100010 vs 01001001000111011110011101100010
 	char* encodedString = malloc(outLen+1);
 	for(int i =0;i<outLen;i++)
 	{
