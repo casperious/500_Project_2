@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <ctype.h>
 void error(const char *msg)
 {
 perror(msg);
@@ -24,7 +25,7 @@ int main(int argc, char *argv[])
 	portno = atoi(argv[2]);
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
-	error("ERROR opening socket");
+		error("ERROR opening socket");
 	server = gethostbyname(argv[1]);
 	if (server == NULL) {
 		fprintf(stderr,"ERROR, no such host\n");
@@ -38,17 +39,51 @@ int main(int argc, char *argv[])
 	if (connect(sockfd,(struct sockaddr *)
 		&serv_addr,sizeof(serv_addr)) < 0)
 	error("ERROR connecting");
-	printf("Please enter the message: ");
-	bzero(buffer,256);
-	fgets(buffer,255,stdin);
-	n = write(sockfd,buffer,strlen(buffer));
-	if (n < 0)
-		error("ERROR writing to socket");
-	bzero(buffer,256);
-	n = read(sockfd,buffer,255);
-	if (n < 0)
-		error("ERROR reading from socket");
-	printf("%s\n",buffer);
+	//get loginList from server, display list of existing usernames and check entered username doesn't clash
+	printf("Please enter username 8 characters long starting with a letter\n"); 
+	char* username = calloc(9,sizeof(char));
+	while(1)
+	{
+		scanf("%s",username);
+		if(strlen(username)!=8)
+		{
+			printf("Please enter a name 8 characters long, starting with a letter. Entered username is %ld characters long\n",strlen(username));
+		}
+		else if((username[0]>=65 && username[0]<=90) || (username[0]>=97 && username[0]<=122))
+		{
+			
+			printf("Welcome %s\n",username);
+			break;
+		}
+		else
+		{
+			printf("Please enter a username starting with a letter\n");
+		}
+	}
+	int c;
+	while ((c = getchar()) != '\n' && c != EOF) { }				//flush stdin
+	while(1)
+	{
+		printf("Please enter the message: ");
+		bzero(buffer,256);
+		fgets(buffer,255,stdin);
+		n = write(sockfd,buffer,strlen(buffer));
+		if (n < 0)
+			error("ERROR writing to socket");
+		bzero(buffer,256);
+		n = read(sockfd,buffer,255);
+		printf("%d\n",strcmp(buffer,"Exit\n"));
+		if(strcmp(buffer,"Exit\n")==0)
+		{
+			printf("Read Exit\n Closing client\n");
+			//close(sockfd);
+			break;
+		}
+		if (n < 0)
+			error("ERROR reading from socket");
+		printf("%s\n",buffer);
+	}
+	n = write(sockfd,"Done",4);
 	close(sockfd);
 	return 0;
 }

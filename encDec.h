@@ -12,3 +12,5 @@ void buildFrame(char *inData, char* fdOut_One,char* isCap,char* flag);
 int deframe(char *inData, char* fdIn_One,char* flag);
 int checkRemoveParity(char** characters);
 int error(char *inData, char* len, char* fdOut_One,char* isCap,char* flag);
+int server();
+int client();
