@@ -36,9 +36,11 @@ int main(int argc, char *argv[])
 	bcopy((char *)server->h_addr,
 	(char *)&serv_addr.sin_addr.s_addr, server->h_length);
 	serv_addr.sin_port = htons(portno);
-	if (connect(sockfd,(struct sockaddr *)
-		&serv_addr,sizeof(serv_addr)) < 0)
-	error("ERROR connecting");
+	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+		error("ERROR connecting");
+	bzero(buffer,256);
+	n = read(sockfd,buffer,255);
+	printf("%s\n",buffer);
 	//get loginList from server, display list of existing usernames and check entered username doesn't clash
 	printf("Please enter username 8 characters long starting with a letter\n"); 
 	char* username = calloc(9,sizeof(char));
