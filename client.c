@@ -53,7 +53,18 @@ int main(int argc, char *argv[])
 		}
 		else if((username[0]>=65 && username[0]<=90) || (username[0]>=97 && username[0]<=122))
 		{
-			
+			char* usernameString = calloc(8+9+9+1,sizeof(char));
+			char* loginStart = "<LOGIN>";
+			char* loginEnd = "</LOGIN>";
+			strcat(usernameString,loginStart);
+			strcat(usernameString,username);
+			strcat(usernameString,loginEnd);
+			usernameString[27]='\0';
+			n = write(sockfd,usernameString,27);
+			if(n<0)
+			{
+				error("ERROR writing username to socket\n");
+			}
 			printf("Welcome %s\n",username);
 			break;
 		}
@@ -63,6 +74,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	int c;
+	free(username);
 	while ((c = getchar()) != '\n' && c != EOF) { }				//flush stdin
 	while(1)
 	{
