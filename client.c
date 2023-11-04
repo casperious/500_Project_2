@@ -90,14 +90,15 @@ int main(int argc, char *argv[])
 		if(strcmp(buffer,"Exit\n")==0)
 		{
 			printf("Read Exit\n Closing client\n");
+			//while ((c = getchar()) != '\n' && c != EOF) { }	
 			//close(sockfd);
 			break;
 		}
 		if (n < 0)
 			error("ERROR reading from socket");
-		printf("%s\n",buffer);
+		printf("%s",buffer);
 	}
-	n = write(sockfd,"Done",4);
+	//n = write(sockfd,"Done",4);
 	close(sockfd);
 	return 0;
 }

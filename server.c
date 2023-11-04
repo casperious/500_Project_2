@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     clilen = sizeof(cli_addr);
     int max_sd;
     int sd,i,activity,new_socket,valread;
-    char* message = "Welcome to the server!\n";
+    char* message = "<info>Welcome to the server!</info>\n";
 	while(1){
 		
 		FD_ZERO(&readfds);   
@@ -191,7 +191,54 @@ int main(int argc, char *argv[])
                     	//set the string terminating NULL byte on the end  
                     	//of the data read  
                     	buffer[valread] = '\0';   
-                    	send(sd , buffer , strlen(buffer) , 0 );   
+                    	char* msg = calloc(6,sizeof(char));
+                    	char* loginList = calloc(13,sizeof(char));
+                    	char* logout = calloc(9,sizeof(char));
+                    	strncpy(logout,buffer,8);
+                    	strncpy(loginList,buffer,12);
+                    	strncpy(msg,buffer,5);
+                    	if(strcmp(msg,"<MSG>")==0)
+                    	{
+                    		char* messageContents = calloc(strlen(buffer)-5-6-1,sizeof(char));
+                    		strncpy(messageContents,buffer+5,strlen(buffer)-5-6-1);
+                    		printf("Message contents are %s\n",messageContents);
+                    	}
+                    	else if(strcmp(loginList,"<LOGIN_LIST>")==0)
+                    	{
+                    		fseek(clientList,0,SEEK_END);
+                    		long fileSize = ftell(clientList);
+                    		fseek(clientList,0,SEEK_SET);
+                    		char* list = malloc(fileSize+1);
+                    		fread(list,fileSize,1,clientList);
+                    		list[fileSize]='\0';
+                    		printf("Client list is %s\n",list);
+                    		send(sd,list,strlen(list),0);
+                    	}
+                    	else if(strcmp(logout,"<LOGOUT>")==0)
+                    	{
+                    		getpeername(sd , (struct sockaddr*)&serv_addr , (socklen_t*)&clilen);   
+                    		printf("user %s logged out , ip %s , port %d \n",usernames[i] , inet_ntoa(serv_addr.sin_addr) , ntohs(serv_addr.sin_port));   
+                    		//Close the socket and mark as -1in list for reuse 
+                    		send(sd,"Exit\n",6,0); 
+                    		close( sd );   
+                    		free(usernames[i]);
+                    		usernames[i]="\n";
+                    		FILE* tmp = fopen("tmp.txt","w");
+                    		for(int j =0;j<6;j++)
+                    		{
+                    			fputs(usernames[j],tmp);
+                    		}	
+                    		fclose(clientList);
+                    		fclose(tmp);
+                    		remove("clientList.txt");
+        	   				rename("tmp.txt","clientList.txt");
+        	   				clientList = fopen("clientList.txt","r");
+                    		clientSockets[i] = -1;   
+                    	}
+                    	else
+                    	{
+                    		send(sd , buffer , strlen(buffer) , 0 );   
+                		}
                 	}
                 }   
             }   
