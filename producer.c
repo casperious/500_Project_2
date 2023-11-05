@@ -8,7 +8,14 @@
 //-1 return is fork failure
 //-2 return is pipe failure
 
-int main(){
+int main(int argc, char *argv[]){
+	printf("In Producer\n");
+	producer(argv[1],argv[2],argv[3]);
+	return 0;
+}
+
+int producer(char* port, char* fl, char* buffer)
+{
 	FILE* ptr;									//input file pointer
 	FILE* binf;									//binf file pointer
 	FILE* outf;									//outf file pointer
@@ -18,22 +25,33 @@ int main(){
 	
 	int pid;
 	
-	char flag[2];
-	printf("Enter h for hamming, or c for crc32\n");
-	scanf("%s",flag);
+	char* flag="";
+	printf("In producer\n");
+	//printf("Enter h for hamming, or c for crc32\n");
+	//scanf("%s",flag);
 	
-	ptr = fopen("data.inpf","r");				//open inpf to read
+	//ptr = fopen("data.inpf","r");				//open inpf to read
 	binf = fopen("data.binf","w");				//wipe data.binf
 	fclose(binf);
 	outf = fopen("data.outf","w");				//wipe data.outf
 	fclose(outf);
 	chck = fopen("data.chck","w");				//wipe data.chck
 	fclose(chck);
-	if(NULL== ptr){
+	/*if(NULL== ptr){
 		printf("File not found \n");
 		return(-1);
-	}
+	}*/
 	
+	int portno = atoi(port);
+	//flag = argv[2];
+	if(fl[0]=='h')
+	{
+		flag="h\0";
+	}
+	else
+	{
+		flag="c\0";
+	}
 	int count = 0;
 	char ch;
 	int fdOut[2];									//p=>c
@@ -49,7 +67,7 @@ int main(){
 		printf("fdIn pipe failed\n");
 		return -2;
 	}
-	consPid = fork();														//fork to create consumer child process
+	/*consPid = fork();														//fork to create consumer child process
 	if(consPid==0)
 	{
 		close(fdOut[1]);													//close write of p=>c
@@ -60,25 +78,26 @@ int main(){
 		char arg2[4];
 		sprintf(arg2,"%d",fdIn[1]);
 		execl("consumer","consumer",arg1,arg2,flag,NULL);						//create consumer, with fdOut[0] to read from, and fdIn[1] to write to
-	}
-	else if(consPid>0)
-	{
+	}*/
+	//else if(consPid>0)
+	//{
 		clearDone = fopen("data.done","w");									//wipe data.done
 		fclose(clearDone);
 		close(fdOut[0]);													//close read of p=>c
 		close(fdIn[1]);														//close write of c=>p
-	}
-	else
+	//}
+	/*else
 	{
 		printf("Failed to create consumer fork\n");
 		return -1;
-	}
+	}*/
 	char arg[4];
 	sprintf(arg,"%d",fdOut[1]);												//store fdOut[1] in string to pass as arg to other functions through exec
 	int newPid;
 	int numFrames=0;														//keep track of number of frames to generate error in 3rd frame
-	while((ch = getc(ptr))!=EOF)
+	for(int z = 0;z<strlen(buffer);z++)
 	{
+		ch = buffer[z];
 		if(count<64){
 			str[count]=ch;													//build frame of 64 chars
 			count++;
@@ -185,8 +204,8 @@ int main(){
 	}
 	close(fdIn[0]);																		//close read pipe
 	waitpid(lastPid,&status,options);													//wait on decoder to finish writing	
-	waitpid(consPid,&status,options);													//wait on consumer process to finish
+	//waitpid(consPid,&status,options);													//wait on consumer process to finish
 	printf("finished consumer ending producer\n");
-	fclose(ptr);																		//close input file
+	//fclose(ptr);																		//close input file
 	return 0;
 }

@@ -7,7 +7,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <ctype.h>
-void error(const char *msg)
+#include <sys/wait.h>
+#include "encDec.h"
+void errorS(const char *msg)
 {
 perror(msg);
 exit(0);
@@ -25,7 +27,7 @@ int main(int argc, char *argv[])
 	portno = atoi(argv[2]);
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
-		error("ERROR opening socket");
+		errorS("ERROR opening socket");
 	server = gethostbyname(argv[1]);
 	if (server == NULL) {
 		fprintf(stderr,"ERROR, no such host\n");
@@ -37,7 +39,7 @@ int main(int argc, char *argv[])
 	(char *)&serv_addr.sin_addr.s_addr, server->h_length);
 	serv_addr.sin_port = htons(portno);
 	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-		error("ERROR connecting");
+		errorS("ERROR connecting");
 	bzero(buffer,256);
 	n = read(sockfd,buffer,255);
 	printf("%s\n",buffer);
@@ -63,7 +65,7 @@ int main(int argc, char *argv[])
 			n = write(sockfd,usernameString,27);
 			if(n<0)
 			{
-				error("ERROR writing username to socket\n");
+				errorS("ERROR writing username to socket\n");
 			}
 			printf("Welcome %s\n",username);
 			break;
@@ -74,7 +76,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	int c;
-	free(username);
+	//free(username);
 	while ((c = getchar()) != '\n' && c != EOF) { }				//flush stdin
 	while(1)
 	{
@@ -85,11 +87,11 @@ int main(int argc, char *argv[])
 		{
 			n = write(sockfd,"<LOGIN_LIST></LOGIN_LIST>",26);
 			if (n < 0)
-				error("ERROR writing to socket");
+				errorS("ERROR writing to socket");
 			bzero(buffer,256);
 			n = read(sockfd,buffer,255);
 			if (n < 0)
-				error("ERROR reading from socket");
+				errorS("ERROR reading from socket");
 			printf("%s",buffer);
 		}
 		else if(buffer[0]=='2')
@@ -97,35 +99,93 @@ int main(int argc, char *argv[])
 			printf("Please enter the username of the person you would like to send a message to\n");
 			bzero(buffer,256);
 			fgets(buffer,255,stdin);
+			char* to = calloc(9,sizeof(char));
+			strncpy(to,buffer,8);
+			to[8]='\0';
 			n = write(sockfd,"<LOGIN_LIST></LOGIN_LIST>",26);
 			if (n < 0)
-				error("ERROR writing to socket");
+				errorS("ERROR writing to socket");
 			bzero(buffer,256);
 			n = read(sockfd,buffer,1024);
 			if (n < 0)
-				error("ERROR reading from socket");
+				errorS("ERROR reading from socket");
 			char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};
-			
+			int idx = -1;
 			for(int i =0;i<6;i++)
 			{
 				char* name = calloc(10,sizeof(char));
 				strncpy(name,buffer+(i*9),8);
 				usernames[i] = name;
+				if(strcmp(usernames[i],to)==0)
+				{
+					idx = i;
+					break;
+				}
 				if(usernames[i][0]=='\n')
 				{
+					
 					break;
 				}
 				//printf("User %d is %s\n",i,usernames[i]);
 				//free(usernames[i]);	//comment out once checked
 			}
-			
+			if(idx>-1)
+			{
+				if(strcmp(to,username)==0)
+				{
+					printf("Cannot send message to self. Please enter valid username from the list\n");
+				}
+				else
+				{
+					printf("\n ------------------\n Enter h for hamming, or c for crc\n --------------------\n");
+					bzero(buffer,256);
+					fgets(buffer,255,stdin);
+					if(buffer[0]=='h')
+					{
+						printf("Please enter the message for hamming\n");
+						bzero(buffer,1024);
+						fgets(buffer,1024,stdin);
+						int pid;
+						pid = fork();
+						if(pid==0)
+						{
+							printf("In child calling producer\n");
+							char countStr[64];
+							sprintf(countStr,"%d",sockfd);														//store length of last block into countStr
+							execl("producer","producer",countStr,"h",buffer,NULL);
+						}
+						else if(pid>0)
+						{
+							wait(NULL);
+						}
+						else
+						{
+							printf("Fork in client failed\n");
+						}
+					}
+					else if(buffer[0]=='c')
+					{
+						printf("Please enter the message for crc\n");
+						bzero(buffer,1024);
+						fgets(buffer,1024,stdin);
+					}
+					else
+					{
+						printf("Wrong option\n");
+					}
+				}
+			}
+			else
+			{
+				printf("\n Username not found. Please enter valid username from the list\n");
+			}
 			
 		}
 		else if(buffer[0]=='3')
 		{
 			n = write(sockfd,"<LOGOUT></LOGOUT>",16);
 			if (n < 0)
-				error("ERROR writing to socket");
+				errorS("ERROR writing to socket");
 			bzero(buffer,256);
 			n = read(sockfd,buffer,255);
 			printf("%d\n",strcmp(buffer,"Exit\n"));
@@ -135,7 +195,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 			if (n < 0)
-				error("ERROR reading from socket");
+				errorS("ERROR reading from socket");
 			printf("%s",buffer);
 		}
 		else

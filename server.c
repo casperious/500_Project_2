@@ -8,14 +8,14 @@
 #include <netinet/in.h>
 #include <sys/time.h>
 #include <errno.h>
-
+#include "encDec.h"
 /*struct usernameMap {
 	int i;
 	char* username;
 }
 */
 
-void error(const char *msg)
+void errorS(const char *msg)
 {
 	perror(msg);
 	exit(1);
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	fprintf(stdout, "Run client by providing host and port\n");
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);	
 	if (sockfd < 0)
-		error("ERROR opening socket");
+		errorS("ERROR opening socket");
 	 if( setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,  
           sizeof(opt)) < 0 )   
     {   
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	serv_addr.sin_port = htons(portno);
 	
 	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-		error("ERROR on binding");
+		errorS("ERROR on binding");
     if (listen(sockfd, 1) < 0)   
     {   
         perror("listen");   
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
                     		char* list = malloc(fileSize+1);
                     		fread(list,fileSize,1,clientList);
                     		list[fileSize]='\0';
-                    		printf("Client list is %s\n",list);
+                    		//printf("Client list is %s\n",list);
                     		send(sd,list,strlen(list),0);
                     	}
                     	else if(strcmp(logout,"<LOGOUT>")==0)
