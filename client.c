@@ -78,12 +78,47 @@ int main(int argc, char *argv[])
 	while ((c = getchar()) != '\n' && c != EOF) { }				//flush stdin
 	while(1)
 	{
-		printf("Please enter the message: ");
+		printf("Please choose one of the following:\n 1. List of users on the server. \n 2. Send a message to a user. \n 3. Logout\n ");
 		bzero(buffer,256);
 		fgets(buffer,255,stdin);
-		n = write(sockfd,buffer,strlen(buffer));
-		if (n < 0)
-			error("ERROR writing to socket");
+		if(buffer[0]=='1')
+		{
+			n = write(sockfd,"<LOGIN_LIST></LOGIN_LIST>",26);
+			if (n < 0)
+				error("ERROR writing to socket");
+			bzero(buffer,256);
+			n = read(sockfd,buffer,255);
+			if (n < 0)
+				error("ERROR reading from socket");
+			printf("%s",buffer);
+		}
+		else if(buffer[0]=='2')
+		{
+			printf("have to frame message\n");
+		}
+		else if(buffer[0]=='3')
+		{
+			n = write(sockfd,"<LOGOUT></LOGOUT>",16);
+			if (n < 0)
+				error("ERROR writing to socket");
+			bzero(buffer,256);
+			n = read(sockfd,buffer,255);
+			printf("%d\n",strcmp(buffer,"Exit\n"));
+			if(strcmp(buffer,"Exit\n")==0)
+			{
+				printf("Read Exit\n Closing client\n");
+				break;
+			}
+			if (n < 0)
+				error("ERROR reading from socket");
+			printf("%s",buffer);
+		}
+		else
+		{
+			printf("Invalid choice. Please choose 1 2 or 3\n");
+		}
+		//n = write(sockfd,buffer,strlen(buffer));
+		/*
 		bzero(buffer,256);
 		n = read(sockfd,buffer,255);
 		printf("%d\n",strcmp(buffer,"Exit\n"));
@@ -96,7 +131,7 @@ int main(int argc, char *argv[])
 		}
 		if (n < 0)
 			error("ERROR reading from socket");
-		printf("%s",buffer);
+		printf("%s",buffer);*/
 	}
 	//n = write(sockfd,"Done",4);
 	close(sockfd);
