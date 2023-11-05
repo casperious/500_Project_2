@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 	
 	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
 		error("ERROR on binding");
-    if (listen(sockfd, 5) < 0)   
+    if (listen(sockfd, 1) < 0)   
     {   
         perror("listen");   
         exit(EXIT_FAILURE);   
@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
     clilen = sizeof(cli_addr);
     int max_sd;
     int sd,i,activity,new_socket,valread;
+    //int count = 0;
+    count=0;
     char* message = "<info>Welcome to the server!</info>\n";
 	while(1){
 		
@@ -101,16 +103,16 @@ int main(int argc, char *argv[])
         
        	//If something happened on the master socket ,  
        	 //then its an incoming connection  
-      	if (FD_ISSET(sockfd, &readfds))   
+      	if (FD_ISSET(sockfd, &readfds) && count<6)   
        	{   
         	if ((new_socket = accept(sockfd, (struct sockaddr *)&serv_addr, (socklen_t*)&clilen))<0)   
         	{   
         	    perror("accept");   
         	    exit(EXIT_FAILURE);   
         	}   
-        	     
+        	count++; 
         	//inform user of socket number - used in send and receive commands  
-        	printf("New connection , socket fd is %d , ip is : %s , port : %d  \n" , new_socket , inet_ntoa(serv_addr.sin_addr) , ntohs(serv_addr.sin_port));
+        	printf("New connection , socket fd is %d , ip is : %s , port : %d  count is now %d\n" , new_socket , inet_ntoa(serv_addr.sin_addr) , ntohs(serv_addr.sin_port),count);
         	//send new connection greeting message  
         	if( send(new_socket, message, strlen(message), 0) != strlen(message) )   
         	{   
@@ -145,7 +147,10 @@ int main(int argc, char *argv[])
                     printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(serv_addr.sin_addr) , ntohs(serv_addr.sin_port));   
                     //Close the socket and mark as -1in list for reuse  
                     close( sd );   
-                    free(usernames[i]);
+                    if(usernames[i][0]!='\n')
+                    {
+                    	free(usernames[i]);
+                    }
                     usernames[i]="\n";
                     FILE* tmp = fopen("tmp.txt","w");
                     for(int j =0;j<6;j++)
@@ -158,6 +163,7 @@ int main(int argc, char *argv[])
         	   		rename("tmp.txt","clientList.txt");
         	   		clientList = fopen("clientList.txt","r");
                     clientSockets[i] = -1;   
+                    count--;
                 }   
                 //Echo back the message that came in  
                 else 
@@ -234,6 +240,7 @@ int main(int argc, char *argv[])
         	   				rename("tmp.txt","clientList.txt");
         	   				clientList = fopen("clientList.txt","r");
                     		clientSockets[i] = -1;   
+                    		count--;
                     	}
                     	else
                     	{

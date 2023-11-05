@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 	int sockfd, portno, n;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
-	char buffer[256];
+	char buffer[1024];
 	if (argc < 3) {
 		fprintf(stderr,"usage %s hostname port\n", argv[0]);
 		exit(0);
@@ -94,7 +94,32 @@ int main(int argc, char *argv[])
 		}
 		else if(buffer[0]=='2')
 		{
-			printf("have to frame message\n");
+			printf("Please enter the username of the person you would like to send a message to\n");
+			bzero(buffer,256);
+			fgets(buffer,255,stdin);
+			n = write(sockfd,"<LOGIN_LIST></LOGIN_LIST>",26);
+			if (n < 0)
+				error("ERROR writing to socket");
+			bzero(buffer,256);
+			n = read(sockfd,buffer,1024);
+			if (n < 0)
+				error("ERROR reading from socket");
+			char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};
+			
+			for(int i =0;i<6;i++)
+			{
+				char* name = calloc(10,sizeof(char));
+				strncpy(name,buffer+(i*9),8);
+				usernames[i] = name;
+				if(usernames[i][0]=='\n')
+				{
+					break;
+				}
+				//printf("User %d is %s\n",i,usernames[i]);
+				//free(usernames[i]);	//comment out once checked
+			}
+			
+			
 		}
 		else if(buffer[0]=='3')
 		{
