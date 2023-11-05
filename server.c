@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/wait.h>
 #include <sys/time.h>
 #include <errno.h>
 #include "encDec.h"
@@ -38,7 +39,7 @@ int main(int argc, char *argv[])
 	int maxClients=6;
 	fd_set readfds;
 	socklen_t clilen;
-	char buffer[1024];
+	char buffer[2048];
 	struct sockaddr_in serv_addr, cli_addr;
 	int n;
 	if (argc < 2) {
@@ -133,12 +134,13 @@ int main(int argc, char *argv[])
 		}
 		for (i = 0; i < maxClients; i++)   
     	{   
+    		bzero(buffer,2048);
             sd = clientSockets[i];   
             if (FD_ISSET( sd , &readfds))   
             {   
              	//Check if it was for closing , and also read the  
                	//incoming message  
-				valread = read( sd , buffer, 1024);
+				valread = read( sd , buffer, 2048);
                	//printf("%d is valread for %s\n",valread,buffer);
                	if (valread == 0)   
            		{   
@@ -171,7 +173,7 @@ int main(int argc, char *argv[])
                 	if(strcmp(usernames[i],"\n")==0)
                	 	{
                	 		char* usernameString = buffer;
-        	  			printf("username string read by server is %s\n",usernameString);
+        	  			//printf("username string read by server is %s\n",usernameString);
         	   			char* username = calloc(10,sizeof(char));
         	   			strncpy(username,usernameString+7,8);
         	   			
@@ -196,7 +198,8 @@ int main(int argc, char *argv[])
                	 	{
                     	//set the string terminating NULL byte on the end  
                     	//of the data read  
-                    	buffer[valread] = '\0';   
+                    	//buffer[valread] = '\0';  
+                    	//printf("buffer is %s\n",buffer); 
                     	char* msg = calloc(6,sizeof(char));
                     	char* loginList = calloc(13,sizeof(char));
                     	char* logout = calloc(9,sizeof(char));
@@ -205,9 +208,53 @@ int main(int argc, char *argv[])
                     	strncpy(msg,buffer,5);
                     	if(strcmp(msg,"<MSG>")==0)
                     	{
-                    		char* messageContents = calloc(strlen(buffer)-5-6-1,sizeof(char));
-                    		strncpy(messageContents,buffer+5,strlen(buffer)-5-6-1);
+                    		//printf("In MSG server %s \n", buffer);
+                    		char* messageContents = calloc(strlen(buffer)-5-6,sizeof(char));
+                    		strncpy(messageContents,buffer+5,strlen(buffer)-5-6);
                     		printf("Message contents are %s\n",messageContents);
+                    		char* from = calloc(9,sizeof(char));
+                    		char* to = calloc(9,sizeof(char));
+                    		char* encode = calloc(2,sizeof(char));
+                    		char* body = calloc(strlen(messageContents)-69,sizeof(char));
+                    		strncpy(from,messageContents+6,8);
+                    		from[8]='\0';
+                    		printf("From is %s\n",from);
+                    		strncpy(to,messageContents+25,8);
+                    		to[8]='\0';
+                    		printf("To is %s\n", to);
+                    		strncpy(encode,messageContents+46,1);
+                    		encode[1]='\0';
+                    		printf("Encode is %s\n",encode);
+                    		strncpy(body,messageContents+62,strlen(messageContents)-69);
+                    		//printf("Body contents are %s\n",body);
+                    		int pid;
+                    		pid = fork();
+                    		if(pid==0)
+                    		{
+                    			char sock[4];
+								sprintf(sock,"%d",sd);	
+                    			if(encode[0]=='h')
+                    			{
+                    				printf("Calling deframe on %s\n",body);
+                    				execl("deframe","deframe",body,sock,encode,NULL);			//call deframe for every frame read
+                    			}
+                    			else
+                    			{
+                    				execl("crcCheck","crcCheck",body,sock,encode,NULL);
+                    			}
+                    		}
+                    		else if(pid>0)
+                    		{
+                    			wait(NULL);
+                    		}
+                    		else
+                    		{
+                    			printf("fork in server to decode body failed\n");
+                    		}
+                    		free(from);
+                    		free(to);
+                    		free(encode);
+                    		free(body);
                     	}
                     	else if(strcmp(loginList,"<LOGIN_LIST>")==0)
                     	{

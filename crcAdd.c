@@ -10,7 +10,7 @@ char* crc_gen = "100000100110000010001110110110111"; //x32+ x26+ x23+ x22+ x16+ 
 	
 int main(int argc, char *argv[])
 {
-	addCRC(argv[1],argv[2],argv[3],argv[4]);
+	addCRC(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
 	return 0;
 }
 
@@ -32,7 +32,7 @@ char* XOR(char* x, char* y)
 	return retString;
 }
 
-void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag)
+void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* username, char* to)
 {
 	int len = strlen(inData);
 	printf("inData is %s and length of indata is %ld\n",inData,strlen(inData));
@@ -131,6 +131,7 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag)
 	printf("encoded string is %s of length %ld\n",encodedString,strlen(encodedString));
 	int fdOut;
 	sscanf(fdOut_One,"%d",&fdOut);									//extract fd to write to
+	printf("Writing %s to socket in crc\n", encodedString);
 	write(fdOut,encodedString,1025);
 	free(extendedData);
 	free(rem);

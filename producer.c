@@ -10,11 +10,11 @@
 
 int main(int argc, char *argv[]){
 	printf("In Producer\n");
-	producer(argv[1],argv[2],argv[3]);
+	producer(argv[1],argv[2],argv[3],argv[4],argv[5]);
 	return 0;
 }
 
-int producer(char* port, char* fl, char* buffer)
+int producer(char* port, char* fl, char* buffer, char* username, char* to)
 {
 	FILE* ptr;									//input file pointer
 	FILE* binf;									//binf file pointer
@@ -26,7 +26,7 @@ int producer(char* port, char* fl, char* buffer)
 	int pid;
 	
 	char* flag="";
-	printf("In producer\n");
+	printf("In producer username is %s and to is %s\n",username,to);
 	//printf("Enter h for hamming, or c for crc32\n");
 	//scanf("%s",flag);
 	
@@ -109,7 +109,7 @@ int producer(char* port, char* fl, char* buffer)
 					newPid=fork();
 					if(newPid==0)
 					{
-						execl("errorService","errorService",str,"64",arg,"0", flag,NULL);		//call error service if numFrames is 3 i.e. 3rd frame
+						execl("errorService","errorService",str,"64",port,"0", flag, username,to,NULL);		//call error service if numFrames is 3 i.e. 3rd frame
 					}
 					else if(newPid>0)
 					{
@@ -125,7 +125,7 @@ int producer(char* port, char* fl, char* buffer)
 					if(newPid==0)
 					{
 						
-						execl("encoderService","encoderService",str,"64",arg,"0",flag,NULL);	//if not 3rd frame, then call encoder service with 64 char string, length of 64, fdOut[1], isCap="0"
+						execl("encoderService","encoderService",str,"64",port,"0",flag, username,to,NULL);	//if not 3rd frame, then call encoder service with 64 char string, length of 64, fdOut[1], isCap="0"
 					}
 					else if(newPid>0)
 					{
@@ -155,7 +155,7 @@ int producer(char* port, char* fl, char* buffer)
 			pid = fork();
 			if(pid==0)
 			{
-				execl("errorService","errorService",str,countStr,arg,"0",flag,NULL);
+				execl("errorService","errorService",str,countStr,port,"0",flag, username,to,NULL);
 			}
 			else if(pid>0)
 			{
@@ -170,7 +170,7 @@ int producer(char* port, char* fl, char* buffer)
 		{
 			pid=fork();
 			if(pid==0){
-				execl("encoderService","encoderService",str,countStr,arg,"0",flag,NULL);		
+				execl("encoderService","encoderService",str,countStr,port,"0",flag, username,to,NULL);		
 			}
 			else if(pid>0){
 				wait(NULL);
@@ -181,7 +181,7 @@ int producer(char* port, char* fl, char* buffer)
 			}
 		}
 	}
-	char buff[1025];	
+	/*char buff[1025];	
 	ssize_t capped;
 	close(fdOut[1]);																	//close write end of fdOut. Consumer will stop reading
 	int lastPid;
@@ -205,7 +205,7 @@ int producer(char* port, char* fl, char* buffer)
 	close(fdIn[0]);																		//close read pipe
 	waitpid(lastPid,&status,options);													//wait on decoder to finish writing	
 	//waitpid(consPid,&status,options);													//wait on consumer process to finish
-	printf("finished consumer ending producer\n");
+	printf("finished consumer ending producer\n");*/
 	//fclose(ptr);																		//close input file
 	return 0;
 }

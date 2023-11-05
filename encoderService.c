@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-	encode(argv[1],argv[2],argv[3],argv[4],argv[5]);
+	encode(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6],argv[7]);
 	return 0;
 }
 
@@ -22,7 +22,7 @@ Args:-
 	isCap = flag to check if consumer child is calling, or if producer is.
 	flag = flag for hamming or crc
 */
-int encode(char *inData,char* len, char* fdOut_One, char* isCap,char* flag){
+int encode(char *inData,char* len, char* fdOut_One, char* isCap,char* flag, char* username, char* to){
 	char bin[1025]="";												//binary encoding of length + characters
 	int length;
 	sscanf(len,"%d",&length);										//storing len as an int
@@ -56,7 +56,7 @@ int encode(char *inData,char* len, char* fdOut_One, char* isCap,char* flag){
 	int pid;
 	pid = fork();
 	if(pid==0){
-		execl("parityAddService","parityAddService",bin,fdOut_One,isCap,flag,NULL);			//call parityAddService with binary encoded string, fd to write to, isCap
+		execl("parityAddService","parityAddService",bin,fdOut_One,isCap,flag,username,to,NULL);			//call parityAddService with binary encoded string, fd to write to, isCap
 	}
 	else if(pid>0)
 	{

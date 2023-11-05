@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-	addParity(argv[1],argv[2],argv[3],argv[4]);
+	addParity(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
 	return 0;
 }
 
@@ -21,7 +21,7 @@ Args:-
 	isCap - 0 if producer called, 1 if consumer called
 	flag= flag for hamming or crc
 */
-void addParity(char *inData, char* fdOut_One,char* isCap,char* flag)
+void addParity(char *inData, char* fdOut_One,char* isCap,char* flag, char* username, char* to)
 {
 	char outData[1025] = "";								//parity bit added, binary encoded result string
 	int j =1;
@@ -65,12 +65,12 @@ void addParity(char *inData, char* fdOut_One,char* isCap,char* flag)
 	{
 		if(flag[0]=='h')
 		{
-			execl("hamming","hamming",outData,fdOut_One,isCap,flag,NULL);
+			execl("hamming","hamming",outData,fdOut_One,isCap,flag,username,to,NULL);
 		}
 		else
 		{
 			//execl("crcAdd","crcAdd",outData,fdOut_One,isCap,NULL);
-			execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,flag,NULL);		//call buildFrameService with 8 char, parity bit, binary encoded string, fd to write to, and isCap
+			execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,flag,username,to,NULL);		//call buildFrameService with 8 char, parity bit, binary encoded string, fd to write to, and isCap
 		}
 		//execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,NULL);		//call buildFrameService with 8 char, parity bit, binary encoded string, fd to write to, and isCap
 	}

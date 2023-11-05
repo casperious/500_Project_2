@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-	buildFrame(argv[1],argv[2],argv[3],argv[4]);
+	buildFrame(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
 	return 0;
 }
 
@@ -21,7 +21,7 @@ Args:-
 
 */
 
-void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag){
+void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* username, char* to){
 	int fdOut;
 	sscanf(fdOut_One,"%d",&fdOut);									//extract fd to write to
 	char syn[8] = "00010110";										//hard code parity bit binary encoded SYN (22)
@@ -44,7 +44,50 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag){
 	//printf("Writing %s of length %ld to %d\n",frame,strlen(frame),fdOut);
 	if(flag[0]=='h')
 	{
-		write(fdOut,frame,sizeof(frame));						//write to pipe, be it fdOut or fdIn
+		char* toStart = "<TO>";
+		char* toEnd = "</TO>";
+		char* toString = calloc(18,sizeof(char));
+		strcat(toString,toStart);
+		strcat(toString,to);
+		strcat(toString,toEnd);
+		toString[17]='\0';
+		printf("To is %s\n",toString);
+		char* fromStart = "<FROM>";
+		char* fromEnd = "</FROM>";
+		char* fromString = calloc(22,sizeof(char));
+		strcat(fromString, fromStart);
+		strcat(fromString,username);
+		strcat(fromString,fromEnd);
+		fromString[21]='\0';
+		printf("From is %s\n",fromString);
+		char* encodeStart = "<ENCODE>";
+		char* encodeEnd = "</ENCODE>";
+		char* encodeString = calloc(26,sizeof(char));
+		strcat(encodeString, encodeStart);
+		strcat(encodeString,flag);
+		strcat(encodeString,encodeEnd);
+		encodeString[25]='\0';
+		printf("Encode is %s\n",encodeString);
+		char* msgStart = "<MSG>";
+		char* msgEnd = "</MSG>";
+		char* bodyStart = "<BODY>";
+		char* bodyEnd = "</BODY>";
+		char* finalFrame = calloc(90+sizeof(frame)+1,sizeof(char));
+		strcat(finalFrame,msgStart);
+		strcat(finalFrame,fromString);
+		strcat(finalFrame,toString);
+		strcat(finalFrame,encodeString);
+		strcat(finalFrame,bodyStart);
+		strcat(finalFrame,frame);
+		strcat(finalFrame,bodyEnd);
+		strcat(finalFrame,msgEnd);
+		finalFrame[strlen(finalFrame)] = '\0';
+		printf("Writing %s to socket\n",finalFrame);
+		write(fdOut,finalFrame,strlen(finalFrame));						//write to pipe, be it fdOut or fdIn
+		free(toString);
+		free(fromString);
+		free(encodeString);
+		free(finalFrame);
 	}
 	else
 	{
@@ -52,7 +95,7 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag){
 		pid = fork();
 		if(pid==0)
 		{
-			execl("crcAdd","crcAdd",frame,fdOut_One,isCap,flag,NULL);
+			execl("crcAdd","crcAdd",frame,fdOut_One,isCap,flag,username,to,NULL);
 		}
 		else if(pid>0)
 		{

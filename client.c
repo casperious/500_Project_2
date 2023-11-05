@@ -152,7 +152,8 @@ int main(int argc, char *argv[])
 							printf("In child calling producer\n");
 							char countStr[64];
 							sprintf(countStr,"%d",sockfd);														//store length of last block into countStr
-							execl("producer","producer",countStr,"h",buffer,NULL);
+							printf("username in client is %s and to is %s\n",username,to);
+							execl("producer","producer",countStr,"h",buffer,username,to,NULL);
 						}
 						else if(pid>0)
 						{
