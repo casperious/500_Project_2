@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 		while(1)
 		{
 			bzero(readBuffer,2048);
-			n = read(sockfd,readBuffer,2048);
+			n = read(sockfd,readBuffer,2048);				//have to stop freezing
 			if(strcmp(readBuffer,"Exit\n")==0)
 			{	
 				printf("Read Exit\n Closing client\n");
