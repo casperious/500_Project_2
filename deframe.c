@@ -23,7 +23,7 @@ Args:-
 
 int deframe(char* inData,char* fdIn_One,char* flag)
 {
-	printf("In Deframe\n");
+	//printf("In Deframe\n");
 	//char* characters[69]={"checkRemoveParityService",fdIn_One};				//intialize argument string for execv with service name, pipe fd
 	char* characters[100]={};
 	if(flag[0]=='h')
@@ -34,8 +34,8 @@ int deframe(char* inData,char* fdIn_One,char* flag)
 	{
 		characters[0] = "checkRemoveParityService";
 	}
-	printf("%s\n",characters[0]);
-	printf("Read %s in deframe\n",inData);
+	//printf("%s\n",characters[0]);
+	//printf("Read %s in deframe\n",inData);
 	characters[1] = fdIn_One;
 	int j =0;
 	int k =2;
@@ -64,9 +64,9 @@ int deframe(char* inData,char* fdIn_One,char* flag)
 		}
 	}
 	if(j>1){
-	printf("last block outside loop is %s %d %s\n", characters[k],j,block);
+	//printf("last block outside loop is %s %d %s\n", characters[k],j,block);
 	characters[k] = strdup(block);											//to get remainder bits
-	printf("last block outside loop is %s %d %s %ld\n", characters[k],j,block,strlen(characters[k]));
+	//printf("last block outside loop is %s %d %s %ld\n", characters[k],j,block,strlen(characters[k]));
 	}/*
 	char* end = "";
 	for(int i =0;i<j;i++)
@@ -85,7 +85,7 @@ int deframe(char* inData,char* fdIn_One,char* flag)
 	{
 		if(flag[0]=='h')
 		{
-			printf("calling hammingDecode\n");
+			//printf("calling hammingDecode\n");
 			execv("hammingDecode",characters);
 		}
 		else

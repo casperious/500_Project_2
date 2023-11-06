@@ -26,7 +26,7 @@ int producer(char* port, char* fl, char* buffer, char* username, char* to)
 	int pid;
 	
 	char* flag="";
-	printf("In producer username is %s and to is %s\n",username,to);
+	//printf("In producer username is %s and to is %s\n",username,to);
 	//printf("Enter h for hamming, or c for crc32\n");
 	//scanf("%s",flag);
 	

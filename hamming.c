@@ -15,7 +15,7 @@ void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag, char* user
 {
 	
 	int len = strlen(inData);
-	printf("%s is of length %d\n",inData,len);
+	//printf("%s is of length %d\n",inData,len);
 	int numParityBits = 1;
 	while(1)																//calculate #parity bits by checking if 2^r >= m + r + 1 [r = #parity bits, m = len of input]
 	{

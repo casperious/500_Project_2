@@ -109,7 +109,7 @@ int checkRemoveParity(char** characters)
 		k++;
 	}
 	removedBitsChars[len]=NULL;											//set last argument to NULL
-	printf("Before fork\n");
+	//printf("Before fork\n");
 	int pid;
 	pid = fork();
 	if(pid==0)

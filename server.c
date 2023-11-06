@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
                     		strncpy(messageContents,buffer+5,strlen(buffer)-5-6);
                     		printf("Message contents are %s\n",messageContents);
                     		char* from = calloc(9,sizeof(char));
-                    		char* to = calloc(9,sizeof(char));
+                    		char* to = calloc(10,sizeof(char));
                     		char* encode = calloc(2,sizeof(char));
                     		char* body = calloc(strlen(messageContents)-69,sizeof(char));
                     		strncpy(from,messageContents+6,8);
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 								sprintf(sock,"%d",sd);	
                     			if(encode[0]=='h')
                     			{
-                    				printf("Calling deframe on %s\n",body);
+                    				//printf("Calling deframe on %s\n",body);
                     				execl("deframe","deframe",body,sock,encode,NULL);			//call deframe for every frame read
                     			}
                     			else
@@ -245,6 +245,27 @@ int main(int argc, char *argv[])
                     		}
                     		else if(pid>0)
                     		{
+                    			to[8]='\n';
+                    			to[9]='\0';
+                    			printf("To for comparison is %s\n",to);
+                    			int idx = -1;
+                    			for(int p=0;p<6;p++)
+                    			{
+                    				//printf("Comparing to with %s\n",usernames[p]);
+                    				if(usernames[p][0]=='\n')
+                    				{
+                    					break;
+                    				}
+                    				if(strcmp(to,usernames[p])==0)
+                    				{
+                    					idx=p;
+                    					break;
+                    				}
+                    			}
+                    			if( idx>-1 && send(clientSockets[idx], buffer, strlen(buffer), 0) != strlen(buffer) )   
+        						{   
+        	    					perror("send");   
+        						}
                     			wait(NULL);
                     		}
                     		else

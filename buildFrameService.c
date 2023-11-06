@@ -51,7 +51,7 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 		strcat(toString,to);
 		strcat(toString,toEnd);
 		toString[17]='\0';
-		printf("To is %s\n",toString);
+		//printf("To is %s\n",toString);
 		char* fromStart = "<FROM>";
 		char* fromEnd = "</FROM>";
 		char* fromString = calloc(22,sizeof(char));
@@ -59,7 +59,7 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 		strcat(fromString,username);
 		strcat(fromString,fromEnd);
 		fromString[21]='\0';
-		printf("From is %s\n",fromString);
+		//printf("From is %s\n",fromString);
 		char* encodeStart = "<ENCODE>";
 		char* encodeEnd = "</ENCODE>";
 		char* encodeString = calloc(26,sizeof(char));
@@ -67,7 +67,7 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 		strcat(encodeString,flag);
 		strcat(encodeString,encodeEnd);
 		encodeString[25]='\0';
-		printf("Encode is %s\n",encodeString);
+		//printf("Encode is %s\n",encodeString);
 		char* msgStart = "<MSG>";
 		char* msgEnd = "</MSG>";
 		char* bodyStart = "<BODY>";
@@ -82,7 +82,7 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 		strcat(finalFrame,bodyEnd);
 		strcat(finalFrame,msgEnd);
 		finalFrame[strlen(finalFrame)] = '\0';
-		printf("Writing %s to socket\n",finalFrame);
+		//printf("Writing %s to socket\n",finalFrame);
 		write(fdOut,finalFrame,strlen(finalFrame));						//write to pipe, be it fdOut or fdIn
 		free(toString);
 		free(fromString);

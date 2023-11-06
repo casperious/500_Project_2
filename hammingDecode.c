@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
 void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isCap
 {
-	printf("In hamming decode\n");
+	//printf("In hamming decode\n");
 	char* inData=calloc(69*8,sizeof(char));
 	int k =0;
 	for(int i = 4;i<100;i++)
@@ -43,13 +43,13 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 	//printf("%s\n",inData);
 	int errPos = 0;
 	int len = strlen(inData);
-	printf("%d\n",len);
+	//printf("%d\n",len);
 	int numParity = 0;
 	while(pow(2,numParity)<len)
 	{
 		numParity+=1;
 	}
-	printf("numParity is %d\n",numParity);
+	//printf("numParity is %d\n",numParity);
 	int i =0;
 	while(i<numParity)
 	{
@@ -154,8 +154,8 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 			y++;
 		}
 	}
-	printf("%s of length %ld\n",decoded,strlen(decoded));
-	printf("last block is %s\n",block);
+	//printf("%s of length %ld\n",decoded,strlen(decoded));
+	//printf("last block is %s\n",block);
 	free(inData);
 	free(decoded);
 	/*for(int i =0;i<69;i++)
@@ -167,16 +167,16 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 		printf("%s\n",send[i]);
 	}*/
 	int pid;
-	printf("Calling fork\n");
+	//printf("Calling fork\n");
 	pid = fork();
 	if(pid==0)
 	{	
-		printf("sending to removeParity\n");
+		//printf("sending to removeParity\n");
 		execv("checkRemoveParityService",send);	
 	}
 	else if(pid>0)
 	{
-		printf("Waiting in hamming decode\n");
+		//printf("Waiting in hamming decode\n");
 		wait(NULL);
 	}
 	else
