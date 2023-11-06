@@ -10,6 +10,8 @@
 #include <sys/time.h>
 #include <errno.h>
 #include "encDec.h"
+#include <sys/ioctl.h>
+#include <linux/sockios.h>
 /*struct usernameMap {
 	int i;
 	char* username;
@@ -72,6 +74,7 @@ int main(int argc, char *argv[])
     }   
     clilen = sizeof(cli_addr);
     int max_sd;
+    int iMode=1;
     int sd,i,activity,new_socket,valread;
     //int count = 0;
     count=0;
@@ -127,6 +130,7 @@ int main(int argc, char *argv[])
         	    if( clientSockets[i] == -1 )   
         	    {   
         	        clientSockets[i] = new_socket;   
+        	        ioctl(sockfd, FIONBIO, &iMode);
         	        printf("Adding to list of sockets at %d\n" , i);   
         	        break;   
         	    }   

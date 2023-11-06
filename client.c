@@ -9,6 +9,8 @@
 #include <ctype.h>
 #include <sys/wait.h>
 #include "encDec.h"
+#include <sys/ioctl.h>
+#include <linux/sockios.h>
 void errorS(const char *msg)
 {
 perror(msg);
@@ -79,6 +81,8 @@ int main(int argc, char *argv[])
 	//free(username);
 	while ((c = getchar()) != '\n' && c != EOF) { }				//flush stdin
 	int mpid;
+	int activity;
+	fd_set readfds;
 	mpid= fork();
 	if(mpid==0)
 	{	
@@ -87,7 +91,13 @@ int main(int argc, char *argv[])
 		while(1)
 		{
 			bzero(readBuffer,2048);
-			n = read(sockfd,readBuffer,2048);				//have to stop freezing
+			/*int pending;
+			ioctl(sockfd, SIOCINQ, &pending);
+			activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
+			*/
+			//n = read(sockfd,readBuffer,2048);				//have to stop freezing
+			n = recv(sockfd, readBuffer, 2048, MSG_DONTWAIT);
+			
 			if(strcmp(readBuffer,"Exit\n")==0)
 			{	
 				printf("Read Exit\n Closing client\n");
@@ -179,7 +189,9 @@ int main(int argc, char *argv[])
 				if (n < 0)
 					errorS("ERROR writing to socket");
 				bzero(buffer,256);
-				n = read(sockfd,buffer,1024);
+				//n = read(sockfd,buffer,1024);
+				n = recv(sockfd, buffer, 2048, MSG_DONTWAIT);
+				printf("Got client list\n");
 				if (n < 0)
 					errorS("ERROR reading from socket");
 				char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};
@@ -261,7 +273,8 @@ int main(int argc, char *argv[])
 				if (n < 0)
 					errorS("ERROR writing to socket");
 				bzero(buffer,256);
-				n = read(sockfd,buffer,255);
+				//n = read(sockfd,buffer,255);
+				n = recv(sockfd, buffer, 2048, MSG_DONTWAIT);
 				printf("%d\n",strcmp(buffer,"Exit\n"));
 				if(strcmp(buffer,"Exit\n")==0)
 				{	
