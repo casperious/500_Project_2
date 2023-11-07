@@ -28,18 +28,20 @@ void errorS(const char *msg)
 }
 void delFile(char* directory, char *name)
 {
-	printf("Scanning %s and deleting all files starting with %s\n",directory,name);
-	if(strlen(name)==8){
+	printf("Scanning %s and deleting all files starting with %s",directory,name);
+	if(strlen(name)==9){
     DIR *d;
   	struct dirent *dir;
   	d = opendir(".");
   	if (d) {
     	while ((dir = readdir(d)) != NULL) {
+    		//printf("%s\n",dir->d_name);
       		if(strcmp(".",dir->d_name) == 0 ||
                 strcmp("..",dir->d_name) == 0)
                 continue;
             else
             {
+            	//printf("%s\n",dir->d_name);
             	char* start = calloc(10,sizeof(char));
             	char* ext = calloc(5,sizeof(char));
             	strncpy(start,dir->d_name,8);

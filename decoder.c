@@ -60,7 +60,7 @@ int decode(char** blocks)
 	sprintf(charCount,"%d",numChars+1);											//store number of characters as string to pass as arg
 	int fd;
 	sscanf(fdIn_One,"%d",&fd);													//store pipe fd as int
-	printf("%s\n",data);
+	printf("%s",data);
 	
 	if(strcmp(file,"\n")==0)
 	{

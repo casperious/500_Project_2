@@ -19,6 +19,7 @@ exit(0);
 int main(int argc, char *argv[])
 {
 	int sockfd, portno, n;
+	char inp[20480];
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
 	char buffer[2048];
@@ -118,7 +119,7 @@ int main(int argc, char *argv[])
                 char* body = calloc(strlen(messageContents)-69,sizeof(char));
                 strncpy(from,messageContents+6,8);
                 from[8]='\0';
-                //printf("From is %s\n",from);
+               // printf("Message from %s\n",from);
                 strncpy(to,messageContents+25,8);
                 to[8]='\0';
                 //printf("To is %s\n", to);
@@ -164,9 +165,19 @@ int main(int argc, char *argv[])
 	{
 		while(1)
 		{
+			//fflush(stdin);
 			printf("Please choose one of the following:\n 1. List of users on the server. \n 2. Send a message to a user. \n 3. Logout\n ");
 			bzero(buffer,256);
-			fgets(buffer,255,stdin);
+			int m =0;
+			char cha;
+			while((cha=getc(stdin))!='\n' && cha>=0 && cha<=127)
+			{
+				buffer[m]=cha;
+				//printf("%c",inp[m]);
+				m++;
+			}
+			//fgets(buffer,255,stdin);
+			//while ((c = getchar()) != '\n' && c != EOF) { }				//flush stdin
 			if(buffer[0]=='1')
 			{
 				n = write(sockfd,"<LOGIN_LIST></LOGIN_LIST>",26);
@@ -182,7 +193,15 @@ int main(int argc, char *argv[])
 			{
 				printf("Please enter the username of the person you would like to send a message to\n");
 				bzero(buffer,256);
-				fgets(buffer,255,stdin);
+				cha='\0';
+				m=0;
+				while((cha=getc(stdin))!='\n')
+				{
+					buffer[m]=cha;
+					//printf("%c",inp[l]);
+					m++;
+				}
+				//fgets(buffer,255,stdin);
 				char* to = calloc(9,sizeof(char));
 				strncpy(to,buffer,8);
 				to[8]='\0';
@@ -192,7 +211,7 @@ int main(int argc, char *argv[])
 				bzero(buffer,2048);
 				//n = read(sockfd,buffer,1024);
 				n = recv(sockfd, buffer, 2048, MSG_DONTWAIT);
-				printf("Got client list\n");
+				//printf("Got client list\n");
 				if (n < 0)
 					errorS("ERROR reading from socket");
 				char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};
@@ -225,12 +244,31 @@ int main(int argc, char *argv[])
 					{
 						printf("\n ------------------\n Enter h for hamming, or c for crc\n --------------------\n");
 						bzero(buffer,2048);
-						fgets(buffer,2048,stdin);
+						cha='\0';
+						m=0;
+						while((cha=getc(stdin))!='\n')
+						{
+							buffer[m]=cha;
+							//printf("%c",inp[l]);
+							m++;
+						}
+						//fgets(buffer,2048,stdin);
 						if(buffer[0]=='h')
 						{
 							printf("Please enter the message for hamming\n");
-							bzero(buffer,2048);
-							fgets(buffer,2048,stdin);
+							//bzero(buffer,2048);
+							//scanf("%s",buffer);
+							char ch;
+							bzero(inp,20480);
+							int l=0;
+							while((ch=getc(stdin))!='`')
+							{
+								inp[l]=ch;
+								//printf("%c",inp[l]);
+								l++;
+							}
+							//while ((c = getchar()) != '\n' && c != EOF) { }				//flush stdin
+							//fgets(buffer,2048,stdin);
 							int pid;
 							pid = fork();
 							if(pid==0)
@@ -239,7 +277,7 @@ int main(int argc, char *argv[])
 								char countStr[64];
 								sprintf(countStr,"%d",sockfd);														//store length of last block into countStr
 								//printf("username in client is %s and to is %s\n",username,to);
-								execl("producer","producer",countStr,"h",buffer,username,to,NULL);
+								execl("producer","producer",countStr,"h",inp,username,to,NULL);					//was buffer
 							}
 							else if(pid>0)
 							{
@@ -253,8 +291,17 @@ int main(int argc, char *argv[])
 						else if(buffer[0]=='c')
 						{
 							printf("Please enter the message for crc\n");
-							bzero(buffer,2048);
-							fgets(buffer,2048,stdin);
+							char ch;
+							bzero(inp,20480);
+							int l=0;
+							while((ch=getc(stdin))!='`')
+							{
+								inp[l]=ch;
+								//printf("%c",inp[l]);
+								l++;
+							}
+							//while ((c = getchar()) != '\n' && c != EOF) { }				//flush stdin
+							//fgets(buffer,2048,stdin);
 							int pidc;
 							pidc = fork();
 							if(pidc==0)
@@ -263,7 +310,7 @@ int main(int argc, char *argv[])
 								char countStr[64];
 								sprintf(countStr,"%d",sockfd);														//store length of last block into countStr
 								//printf("username in client is %s and to is %s\n",username,to);
-								execl("producer","producer",countStr,"c",buffer,username,to,NULL);
+								execl("producer","producer",countStr,"c",inp,username,to,NULL);
 							}
 							else if(pidc>0)
 							{
@@ -306,7 +353,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				printf("Invalid choice. Please choose 1 2 or 3\n");
+				printf("Invalid choice. Please choose 1 2 or 3. Entered %d\n",buffer[0]);
 			}	
 			//n = write(sockfd,buffer,strlen(buffer));
 			/*
