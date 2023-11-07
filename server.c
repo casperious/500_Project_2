@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <dirent.h>
 #include <netinet/in.h>
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -12,6 +14,7 @@
 #include "encDec.h"
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
+#include <limits.h>
 /*struct usernameMap {
 	int i;
 	char* username;
@@ -23,10 +26,50 @@ void errorS(const char *msg)
 	perror(msg);
 	exit(1);
 }
+void delFile(char* directory, char *name)
+{
+	printf("Scanning %s and deleting all files starting with %s\n",directory,name);
+	if(strlen(name)==8){
+    DIR *d;
+  	struct dirent *dir;
+  	d = opendir(".");
+  	if (d) {
+    	while ((dir = readdir(d)) != NULL) {
+      		if(strcmp(".",dir->d_name) == 0 ||
+                strcmp("..",dir->d_name) == 0)
+                continue;
+            else
+            {
+            	char* start = calloc(10,sizeof(char));
+            	char* ext = calloc(5,sizeof(char));
+            	strncpy(start,dir->d_name,8);
+            	start[8]='\n';
+            	start[9]='\0';
+            	strncpy(ext,dir->d_name+16,4);
+            	if(strcmp(start,name)==0 && strcmp(ext,".txt")==0)
+            	{
+            		printf("Removing %s\n",dir->d_name);
+            		remove(dir->d_name);
+            	}
+            	free(start);
+            	free(ext);
+            }
+    	}
+    	closedir(d);
+  	}
+  	}
+}
 int main(int argc, char *argv[])
 {
 	int limit = 6;
 	int count = 0;
+	char cwd[PATH_MAX];
+	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+       //printf("Current working dir: %s\n", cwd);
+   	} else {
+       perror("getcwd() error");
+       return 1;
+   	}
 	int opt=1;
 	FILE* clientList;
 	clientList = fopen("clientList.txt","w");
@@ -38,6 +81,11 @@ int main(int argc, char *argv[])
 	int clientSockets[6] = {-1,-1,-1,-1,-1,-1};
 	//struct usernameMap username[6];
 	char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};
+	/*char* files[30];
+	for(int i =0;i<30;i++)
+	{
+		files[i]="\n";
+	}*/
 	int maxClients=6;
 	fd_set readfds;
 	socklen_t clilen;
@@ -150,9 +198,10 @@ int main(int argc, char *argv[])
            		{   
                  	//Somebody disconnected , get his details and print  
                     getpeername(sd , (struct sockaddr*)&serv_addr , (socklen_t*)&clilen);   
-                    printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(serv_addr.sin_addr) , ntohs(serv_addr.sin_port));   
+                    printf("Host %s disconnected , ip %s , port %d \n", usernames[i] , inet_ntoa(serv_addr.sin_addr) , ntohs(serv_addr.sin_port));   
                     //Close the socket and mark as -1in list for reuse  
-                    close( sd );   
+                    close( sd );  
+                    delFile(cwd,usernames[i]); 
                     if(usernames[i][0]!='\n')
                     {
                     	free(usernames[i]);
@@ -215,20 +264,25 @@ int main(int argc, char *argv[])
                     		//printf("In MSG server %s \n", buffer);
                     		char* messageContents = calloc(strlen(buffer)-5-6,sizeof(char));
                     		strncpy(messageContents,buffer+5,strlen(buffer)-5-6);
-                    		printf("Message contents are %s\n",messageContents);
+                    		//printf("Message contents are %s\n",messageContents);
                     		char* from = calloc(9,sizeof(char));
                     		char* to = calloc(10,sizeof(char));
                     		char* encode = calloc(2,sizeof(char));
                     		char* body = calloc(strlen(messageContents)-69,sizeof(char));
+                    		char* save = calloc(24,sizeof(char));
                     		strncpy(from,messageContents+6,8);
                     		from[8]='\0';
-                    		printf("From is %s\n",from);
+                    		//printf("From is %s\n",from);
                     		strncpy(to,messageContents+25,8);
                     		to[8]='\0';
-                    		printf("To is %s\n", to);
+                    		//printf("To is %s\n", to);
+                    		strncpy(save,from,8);
+                    		strcat(save,to);
+                    		strcat(save,".txt\0");
+                    		//printf("File to save to is %s\n",save);
                     		strncpy(encode,messageContents+46,1);
                     		encode[1]='\0';
-                    		printf("Encode is %s\n",encode);
+                    		//printf("Encode is %s\n",encode);
                     		strncpy(body,messageContents+62,strlen(messageContents)-69);
                     		//printf("Body contents are %s\n",body);
                     		int pid;
@@ -239,12 +293,12 @@ int main(int argc, char *argv[])
 								sprintf(sock,"%d",sd);	
                     			if(encode[0]=='h')
                     			{
-                    				//printf("Calling deframe on %s\n",body);
-                    				execl("deframe","deframe",body,sock,encode,NULL);			//call deframe for every frame read
+                    				//printf("Calling deframe with save file %s\n",save);
+                    				execl("deframe","deframe",body,sock,encode,save,NULL);			//call deframe for every frame read
                     			}
                     			else
                     			{
-                    				execl("crcCheck","crcCheck",body,sock,encode,NULL);
+                    				execl("crcCheck","crcCheck",body,sock,encode,save,NULL);
                     			}
                     		}
                     		else if(pid>0)
@@ -266,8 +320,9 @@ int main(int argc, char *argv[])
                     					break;
                     				}
                     			}
-                    			if( idx>-1 && send(clientSockets[idx], buffer, strlen(buffer), 0) != strlen(buffer) )   
+                    			if( idx>-1)   
         						{   
+        							send(clientSockets[idx], buffer, 2048, 0);
         	    					perror("send");   
         						}
                     			wait(NULL);
@@ -299,6 +354,7 @@ int main(int argc, char *argv[])
                     		//Close the socket and mark as -1in list for reuse 
                     		send(sd,"Exit\n",6,0); 
                     		close( sd );   
+                    		delFile(cwd,usernames[i]);
                     		free(usernames[i]);
                     		usernames[i]="\n";
                     		FILE* tmp = fopen("tmp.txt","w");

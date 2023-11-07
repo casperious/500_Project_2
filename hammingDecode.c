@@ -17,7 +17,7 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 	//printf("In hamming decode\n");
 	char* inData=calloc(69*8,sizeof(char));
 	int k =0;
-	for(int i = 4;i<100;i++)
+	for(int i = 5;i<100;i++)
 	{
 		if(characters[i]==NULL)
 		{
@@ -129,9 +129,9 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 	decoded[len-numParity] = '\0';
 	//build back into blocks and send to checkRemove
 	//printf("chars[1] is %s\n",characters[1]);
-	char* send[100]={"checkRemoveParityService",characters[1],characters[2],characters[3]};
+	char* send[100]={"checkRemoveParityService",characters[1],characters[2],characters[3],characters[4]};
 	int x =0;
-	int y =4;
+	int y =5;
 	char block[9]="00000000";
 	for(int i =0;i<strlen(decoded);i++)									//loop through inData and split into 8 char blocks
 	{
@@ -171,7 +171,7 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 	pid = fork();
 	if(pid==0)
 	{	
-		//printf("sending to removeParity\n");
+		//printf("sending to removeParity from hammingDecode with file = %s\n",send[2]);
 		execv("checkRemoveParityService",send);	
 	}
 	else if(pid>0)

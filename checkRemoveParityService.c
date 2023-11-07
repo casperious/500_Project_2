@@ -23,11 +23,11 @@ int checkRemoveParity(char** characters)
 {
 	//printf("In checkRemPar  %s\n",characters[4]);
 	int numCharsNumOnes = 0;			
-	if(characters[4][0]=='0')					//checking parity for numChars
+	if(characters[5][0]=='0')					//checking parity for numChars
 	{
 		for(int i =1;i<8;i++)
 		{
-			if(characters[4][i]=='1')
+			if(characters[5][i]=='1')
 			{
 				numCharsNumOnes++;
 			}
@@ -42,7 +42,7 @@ int checkRemoveParity(char** characters)
 	//printf("First char is 1\n");
 		for(int i =1;i<8;i++)
 		{
-			if(characters[4][i]=='1')
+			if(characters[5][i]=='1')
 			{
 				numCharsNumOnes++;
 			}
@@ -54,16 +54,18 @@ int checkRemoveParity(char** characters)
 	}
 	//remove first bit in characters[4]
 	char lenBin[7]="";
-	memcpy(lenBin,&characters[4][1],7);
+	memcpy(lenBin,&characters[5][1],7);
 	int numChars = (int)strtol(lenBin,NULL,2);								//get number of characters in string
 	//printf("NumChars is %d\n",numChars);
-	char* removedBitsChars[numChars+3];										//+1 for decoder, +1 for fdIn[1], +1 for null. Argument string
+	char* removedBitsChars[numChars+4];										//+1 for decoder, +1 for fdIn[1], +1 for file, +1 for null. Argument string
 	int len = sizeof(removedBitsChars)/sizeof(*removedBitsChars);			//length of newly declared char**
 	//printf("len is %d\n",len);
 	removedBitsChars[0]="decoder";
 	removedBitsChars[1]=characters[1];
-	int k =2;
-	for(int i = 5;i<=numChars+4;i++)										//loop through 8 character blocks in argument passed
+	removedBitsChars[2] = characters[2];
+	//printf("file in remove parity is %s\n",removedBitsChars[2]);
+	int k =3;
+	for(int i = 6;i<=numChars+5;i++)										//loop through 8 character blocks in argument passed
 	{	
 		if(characters[i]==NULL)
 		{

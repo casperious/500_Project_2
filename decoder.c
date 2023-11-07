@@ -23,13 +23,25 @@ int decode(char** blocks)
 {
 	//printf("In decoder\n");
 	int len = 0;
-	while(blocks[len+2]!=NULL)													//get number of characters to decode
+	while(blocks[len+3]!=NULL)													//get number of characters to decode
 	{
 		len++;
 	}
 	int numChars = len;
 	//printf("Numchars in decode is %d\n",numChars);
 	char* fdIn_One = blocks[1];													//get pipe fd to write to
+	char* file = blocks[2];
+	//printf("File being saved to is %s\n",file);
+	FILE* ptr;
+	if(strcmp(file,"\n")==0)
+	{
+		//Do nothing
+	}
+	else
+	{
+		
+		ptr = fopen(file,"a");
+	}
 	char* data = malloc(numChars+1);											//initialize outData
 	for(int i =0;i<=numChars;i++)
 	{
@@ -37,7 +49,7 @@ int decode(char** blocks)
 	}
 	int k =0;
 	char c;
-	for(int i =2;i<=numChars+1;i++)												//loop through number of characters 
+	for(int i =3;i<=numChars+1;i++)												//loop through number of characters 
 	{
 		c= (int)strtol(blocks[i],NULL,2);										//convert binary string to int ASCII value
 		data[k] = c;															//save to outData
@@ -49,34 +61,17 @@ int decode(char** blocks)
 	int fd;
 	sscanf(fdIn_One,"%d",&fd);													//store pipe fd as int
 	printf("%s\n",data);
-	//printf("Reaching here %d\n",fd);
-	//if(fd==-1)																	//if pipe fd is -1, called from producer
-	//{
-	FILE* ptr;
-	ptr = fopen("data.done","a");
-	fputs(data,ptr);														//write decoded string to data.done (Capitalized)
-	fclose(ptr);
+	
+	if(strcmp(file,"\n")==0)
+	{
+	
+	}
+	else
+	{
+		fputs(data,ptr);														//write decoded string to data.done (Capitalized)
+		fclose(ptr);
+	}
 	free(data);																//free space by malloc
 	data=NULL;
 	return 1;
-	//}
-	/*else																		//if pipe fd is not -1
-	{
-		int pid;
-		pid = fork();
-		if(pid==0)
-		{
-			printf("Calling toUpper\n");
-			execl("toUpperService","toUpperService",data,charCount,fdIn_One,NULL);			//send string to toUpper with number of characters, and pipe fd to write to
-		}
-		else if (pid>0)
-		{
-			wait(NULL);
-		}
-		else
-		{
-			printf("Fork fail in decoder\n");
-		}
-	}*/
-	return 0;
 }

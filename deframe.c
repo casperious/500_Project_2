@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[])
 {
-	deframe(argv[1],argv[2],argv[3]);
+	deframe(argv[1],argv[2],argv[3],argv[4]);
 	return 0;
 }
 
@@ -21,7 +21,7 @@ Args:-
 
 */
 
-int deframe(char* inData,char* fdIn_One,char* flag)
+int deframe(char* inData,char* fdIn_One,char* flag,char* file)
 {
 	//printf("In Deframe\n");
 	//char* characters[69]={"checkRemoveParityService",fdIn_One};				//intialize argument string for execv with service name, pipe fd
@@ -37,8 +37,10 @@ int deframe(char* inData,char* fdIn_One,char* flag)
 	//printf("%s\n",characters[0]);
 	//printf("Read %s in deframe\n",inData);
 	characters[1] = fdIn_One;
+	characters[2] = file;
+	//printf("file in deframe is %s\n",characters[2]);
 	int j =0;
-	int k =2;
+	int k =3;
 	char block[9]="00000000";
 	for(int i =0;i<strlen(inData)+1;i++)									//loop through inData and split into 8 char blocks
 	{
@@ -74,9 +76,9 @@ int deframe(char* inData,char* fdIn_One,char* flag)
 		strncat
 	}
 	*/
-	if(strcmp(characters[2],"00010110")!=0 || strcmp(characters[3],"00010110")!=0)			//check if first 2 characters are 22 22
+	if(strcmp(characters[3],"00010110")!=0 || strcmp(characters[4],"00010110")!=0)			//check if first 2 characters are 22 22
 	{
-		printf("Incorrect syn chars characters[2] = %s chars[3] = %s\n",characters[2],characters[3]);
+		printf("Incorrect syn chars characters[3] = %s chars[4] = %s\n",characters[3],characters[4]);
 		return -1;
 	}
 	int pid;

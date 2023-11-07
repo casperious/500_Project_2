@@ -35,9 +35,9 @@ char* XOR(char* x, char* y)
 void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* username, char* to)
 {
 	int len = strlen(inData);
-	printf("inData is %s and length of indata is %ld\n",inData,strlen(inData));
+	//printf("inData is %s and length of indata is %ld\n",inData,strlen(inData));
 	int outLen = len+strlen(crc_gen)-1;
-	printf("%d\n",outLen);
+	//printf("%d\n",outLen);
 	char* extendedData = malloc(outLen+1);
 	//printf("%ld\n",strlen(extendedData));
 	for(int i =0;i<outLen;i++)
@@ -53,7 +53,7 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 		//printf("%c %ld %d\n",extendedData[i],strlen(extendedData),i);
 	}
 	extendedData[outLen]='\0';
-	printf("-----------------------------------------\n");
+	//printf("-----------------------------------------\n");
 	//printf("inData with padded 0's is of length %ld is %s \n",strlen(extendedData),extendedData);
 	int i =0;
 	while(i+strlen(crc_gen)<outLen)
@@ -114,7 +114,7 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 		rem[i-strlen(inData)]=extendedData[i];
 	}
 	rem[strlen(crc_gen)-1]='\0';
-	printf("Remainder is %s of length %ld\n",rem,strlen(rem));					//01001001000111011110011101100010 vs 01001001000111011110011101100010
+	//printf("Remainder is %s of length %ld\n",rem,strlen(rem));					//01001001000111011110011101100010 vs 01001001000111011110011101100010
 	char* encodedString = malloc(outLen+1);
 	for(int i =0;i<outLen;i++)
 	{
@@ -128,11 +128,57 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 		}
 	}
 	
-	printf("encoded string is %s of length %ld\n",encodedString,strlen(encodedString));
+	char* toStart = "<TO>";
+	char* toEnd = "</TO>";
+	char* toString = calloc(18,sizeof(char));
+	strcat(toString,toStart);
+	strcat(toString,to);
+	strcat(toString,toEnd);
+	toString[17]='\0';
+	//printf("To is %s\n",toString);
+	char* fromStart = "<FROM>";
+	char* fromEnd = "</FROM>";
+	char* fromString = calloc(22,sizeof(char));
+	strcat(fromString, fromStart);
+	strcat(fromString,username);
+	strcat(fromString,fromEnd);
+	fromString[21]='\0';
+	//printf("From is %s\n",fromString);
+	char* encodeStart = "<ENCODE>";
+	char* encodeEnd = "</ENCODE>";
+	char* encodeString = calloc(26,sizeof(char));
+	strcat(encodeString, encodeStart);
+	strcat(encodeString,flag);
+	strcat(encodeString,encodeEnd);
+	encodeString[25]='\0';
+	//printf("Encode is %s\n",encodeString);
+	char* msgStart = "<MSG>";
+	char* msgEnd = "</MSG>";
+	char* bodyStart = "<BODY>";
+	char* bodyEnd = "</BODY>";
+	char* finalFrame = calloc(90+sizeof(encodedString)+1,sizeof(char));
+	strcat(finalFrame,msgStart);
+	strcat(finalFrame,fromString);
+	strcat(finalFrame,toString);
+	strcat(finalFrame,encodeString);
+	strcat(finalFrame,bodyStart);
+	strcat(finalFrame,encodedString);
+	strcat(finalFrame,bodyEnd);
+	strcat(finalFrame,msgEnd);
+	finalFrame[strlen(finalFrame)] = '\0';
+	//printf("Writing %s to socket\n",finalFrame);
 	int fdOut;
 	sscanf(fdOut_One,"%d",&fdOut);									//extract fd to write to
-	printf("Writing %s to socket in crc\n", encodedString);
-	write(fdOut,encodedString,1025);
+	write(fdOut,finalFrame,strlen(finalFrame));						//write to pipe, be it fdOut or fdIn
+	free(toString);
+	free(fromString);
+	free(encodeString);
+	free(finalFrame);
+	
+	//printf("encoded string is %s of length %ld\n",encodedString,strlen(encodedString));
+	
+	//printf("Writing %s to socket in crc\n", encodedString);
+	//write(fdOut,encodedString,1025);
 	free(extendedData);
 	free(rem);
 	free(encodedString);

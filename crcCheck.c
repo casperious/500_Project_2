@@ -10,7 +10,7 @@ char* crc_gen = "100000100110000010001110110110111"; //x32+ x26+ x23+ x22+ x16+ 
 	
 int main(int argc, char *argv[])
 {
-	checkCRC(argv[1],argv[2],argv[3]);
+	checkCRC(argv[1],argv[2],argv[3],argv[4]);
 	return 0;
 }
 
@@ -32,19 +32,19 @@ char* XOR(char* x, char* y)
 	return retString;
 }
 
-void checkCRC(char* inData, char* fdIn_One, char* flag)
+void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 {
 	int i =0;
-	printf("InData in checkCRC is %s of length %ld\n",inData,strlen(inData));
-	printf("length of crcGen is %ld\n",strlen(crc_gen));
+	//printf("InData in checkCRC is %s of length %ld\n",inData,strlen(inData));
+	//printf("length of crcGen is %ld\n",strlen(crc_gen));
 	char*  check = calloc(strlen(inData),sizeof(char));
 	for(int k=0;k<strlen(inData);k++)
 	{
 		check[k] = inData[k];
 	}
 	check[strlen(inData)]='\0';	
-	printf("check is %s with len %ld\n",check,strlen(check));
-	printf("Comparing inData and check %d\n",strcmp(inData,check));
+	//printf("check is %s with len %ld\n",check,strlen(check));
+	//printf("Comparing inData and check %d\n",strcmp(inData,check));
 	char* xor_string = calloc(strlen(inData),sizeof(char));
 	char* x = calloc(strlen(crc_gen),sizeof(char));
 	while(i<strlen(inData))				//+strlen(crc_gen)
@@ -99,7 +99,7 @@ void checkCRC(char* inData, char* fdIn_One, char* flag)
 			i++;
 		}
 	}
-	printf("Remainder is %s\n",check);												//01001001000111011110011101100010
+	//printf("Remainder is %s\n",check);												//01001001000111011110011101100010
 	
 	//free(x);
 	x=NULL;
@@ -118,7 +118,7 @@ void checkCRC(char* inData, char* fdIn_One, char* flag)
 	}
 	if(j==strlen(check))
 	{
-		printf("correct?\n");
+		//printf("correct?\n");
 	}
 	free(check);
 	char* send = calloc(strlen(inData)-strlen(crc_gen)+2,sizeof(char));
@@ -128,13 +128,13 @@ void checkCRC(char* inData, char* fdIn_One, char* flag)
 		send[i]=inData[i];
 	}
 	send[strlen(send)]='\0';
-	printf("sending %s of length %ld\n",send, strlen(send));
+	//printf("sending %s of length %ld\n",send, strlen(send));
 	check=NULL;
 	int pid;
 	pid = fork();
 	if(pid==0)
 	{
-		execl("deframe","deframe",send,fdIn_One,flag,NULL);
+		execl("deframe","deframe",send,fdIn_One,flag,file,NULL);
 	}
 	else if (pid>0)
 	{

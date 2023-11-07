@@ -54,10 +54,10 @@ int producer(char* port, char* fl, char* buffer, char* username, char* to)
 	}
 	int count = 0;
 	char ch;
-	int fdOut[2];									//p=>c
-	int fdIn[2];									//c=>p
+	//int fdOut[2];									//p=>c
+	//int fdIn[2];									//c=>p
 	int consPid;
-	if(pipe(fdOut)==-1)								
+	/*if(pipe(fdOut)==-1)								
 	{
 		printf("fdOut pipe failed\n");
 		return -2;
@@ -66,7 +66,7 @@ int producer(char* port, char* fl, char* buffer, char* username, char* to)
 	{
 		printf("fdIn pipe failed\n");
 		return -2;
-	}
+	}*/
 	/*consPid = fork();														//fork to create consumer child process
 	if(consPid==0)
 	{
@@ -83,18 +83,19 @@ int producer(char* port, char* fl, char* buffer, char* username, char* to)
 	//{
 		clearDone = fopen("data.done","w");									//wipe data.done
 		fclose(clearDone);
-		close(fdOut[0]);													//close read of p=>c
-		close(fdIn[1]);														//close write of c=>p
+		//close(fdOut[0]);													//close read of p=>c
+		//close(fdIn[1]);														//close write of c=>p
 	//}
 	/*else
 	{
 		printf("Failed to create consumer fork\n");
 		return -1;
 	}*/
-	char arg[4];
-	sprintf(arg,"%d",fdOut[1]);												//store fdOut[1] in string to pass as arg to other functions through exec
+	//char arg[4];
+	//sprintf(arg,"%d",fdOut[1]);												//store fdOut[1] in string to pass as arg to other functions through exec
 	int newPid;
 	int numFrames=0;														//keep track of number of frames to generate error in 3rd frame
+	//printf("Buffer in producer is %s\n",buffer);
 	for(int z = 0;z<strlen(buffer);z++)
 	{
 		ch = buffer[z];

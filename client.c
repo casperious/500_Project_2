@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	int sockfd, portno, n;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
-	char buffer[1024];
+	char buffer[2048];
 	if (argc < 3) {
 		fprintf(stderr,"usage %s hostname port\n", argv[0]);
 		exit(0);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	if(mpid==0)
 	{	
 		//printf("In client reader\n");
-		char readBuffer[2048]; 
+		char readBuffer[2049]; 
 		while(1)
 		{
 			bzero(readBuffer,2048);
@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
             	//printf("In MSG server %s \n", buffer);
             	char* messageContents = calloc(strlen(readBuffer)-5-6,sizeof(char));
             	strncpy(messageContents,readBuffer+5,strlen(readBuffer)-5-6);
+            	bzero(readBuffer,2048);
             	//printf("Message contents are %s\n",messageContents);
             	char* from = calloc(9,sizeof(char));
             	char* to = calloc(9,sizeof(char));
@@ -135,11 +136,11 @@ int main(int argc, char *argv[])
                     if(encode[0]=='h')
                     {
                     	//printf("Calling deframe on %s\n",body);
-                    	execl("deframe","deframe",body,sock,encode,NULL);			//call deframe for every frame read
+                    	execl("deframe","deframe",body,sock,encode,"\n",NULL);			//call deframe for every frame read
                     }
                     else
                     {
-                    	execl("crcCheck","crcCheck",body,sock,encode,NULL);
+                    	execl("crcCheck","crcCheck",body,sock,encode,"\n",NULL);
                     }
                 }
                 else if(pid1>0)
@@ -188,7 +189,7 @@ int main(int argc, char *argv[])
 				n = write(sockfd,"<LOGIN_LIST></LOGIN_LIST>",26);
 				if (n < 0)
 					errorS("ERROR writing to socket");
-				bzero(buffer,256);
+				bzero(buffer,2048);
 				//n = read(sockfd,buffer,1024);
 				n = recv(sockfd, buffer, 2048, MSG_DONTWAIT);
 				printf("Got client list\n");
@@ -223,13 +224,13 @@ int main(int argc, char *argv[])
 					else
 					{
 						printf("\n ------------------\n Enter h for hamming, or c for crc\n --------------------\n");
-						bzero(buffer,256);
-						fgets(buffer,255,stdin);
+						bzero(buffer,2048);
+						fgets(buffer,2048,stdin);
 						if(buffer[0]=='h')
 						{
 							printf("Please enter the message for hamming\n");
-							bzero(buffer,1024);
-							fgets(buffer,1024,stdin);
+							bzero(buffer,2048);
+							fgets(buffer,2048,stdin);
 							int pid;
 							pid = fork();
 							if(pid==0)
@@ -252,8 +253,26 @@ int main(int argc, char *argv[])
 						else if(buffer[0]=='c')
 						{
 							printf("Please enter the message for crc\n");
-							bzero(buffer,1024);
-							fgets(buffer,1024,stdin);
+							bzero(buffer,2048);
+							fgets(buffer,2048,stdin);
+							int pidc;
+							pidc = fork();
+							if(pidc==0)
+							{
+								//printf("In child calling producer\n");
+								char countStr[64];
+								sprintf(countStr,"%d",sockfd);														//store length of last block into countStr
+								//printf("username in client is %s and to is %s\n",username,to);
+								execl("producer","producer",countStr,"c",buffer,username,to,NULL);
+							}
+							else if(pidc>0)
+							{
+								wait(NULL);
+							}
+							else
+							{
+								printf("Fork in client failed\n");
+							}
 						}
 						else
 						{
@@ -272,7 +291,7 @@ int main(int argc, char *argv[])
 				n = write(sockfd,"<LOGOUT></LOGOUT>",16);
 				if (n < 0)
 					errorS("ERROR writing to socket");
-				bzero(buffer,256);
+				bzero(buffer,2048);
 				//n = read(sockfd,buffer,255);
 				n = recv(sockfd, buffer, 2048, MSG_DONTWAIT);
 				printf("%d\n",strcmp(buffer,"Exit\n"));
