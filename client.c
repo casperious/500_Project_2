@@ -254,7 +254,27 @@ int main(int argc, char *argv[])
 						}
 						//fgets(buffer,2048,stdin);
 						if(buffer[0]=='h')
-						{
+						{	
+							printf("Enter frame number where you would like error inserted\n");
+							bzero(buffer,2048);
+							char errC;
+							int u=0;
+							while((errC=getc(stdin))!='\n')
+							{
+								if(isdigit(errC))
+								{
+									buffer[u]=errC;
+									u++;
+								}
+								else
+								{
+									printf("Skipping non digit\n");
+								}
+							}
+							buffer[u]='\0';
+							int errFrame = atoi(buffer);
+							char errFrameString[64];
+							sprintf(errFrameString,"%d",errFrame);
 							printf("Please enter the message for hamming\n");
 							//bzero(buffer,2048);
 							//scanf("%s",buffer);
@@ -277,7 +297,7 @@ int main(int argc, char *argv[])
 								char countStr[64];
 								sprintf(countStr,"%d",sockfd);														//store length of last block into countStr
 								//printf("username in client is %s and to is %s\n",username,to);
-								execl("producer","producer",countStr,"h",inp,username,to,NULL);					//was buffer
+								execl("producer","producer",countStr,"h",inp,username,to,errFrameString,NULL);					//was buffer
 							}
 							else if(pid>0)
 							{
@@ -290,6 +310,26 @@ int main(int argc, char *argv[])
 						}
 						else if(buffer[0]=='c')
 						{
+							printf("Enter frame number where you would like error inserted\n");
+							bzero(buffer,2048);
+							char errC;
+							int u=0;
+							while((errC=getc(stdin))!='\n')
+							{
+								if(isdigit(errC))
+								{
+									buffer[u]=errC;
+									u++;
+								}
+								else
+								{
+									printf("Skipping non digit\n");
+								}
+							}
+							buffer[u]='\0';
+							int errFrame = atoi(buffer);
+							char errFrameString[64];
+							sprintf(errFrameString,"%d",errFrame);
 							printf("Please enter the message for crc\n");
 							char ch;
 							bzero(inp,20480);
@@ -310,7 +350,7 @@ int main(int argc, char *argv[])
 								char countStr[64];
 								sprintf(countStr,"%d",sockfd);														//store length of last block into countStr
 								//printf("username in client is %s and to is %s\n",username,to);
-								execl("producer","producer",countStr,"c",inp,username,to,NULL);
+								execl("producer","producer",countStr,"c",inp,username,to,errFrameString,NULL);
 							}
 							else if(pidc>0)
 							{

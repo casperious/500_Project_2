@@ -1,4 +1,4 @@
-int producer(char* port, char* fl, char* buffer,char* username, char* to);
+int producer(char* port, char* fl, char* buffer,char* username, char* to, char* frameNum);
 int encode(char *inData,char *len, char* fdOut_One,char* isCap,char* flag,char* username, char* to);
 int decode(char** blocks);
 int toUpper(char* str, char* len,char* fdIn_One);

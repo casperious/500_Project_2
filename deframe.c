@@ -79,7 +79,7 @@ int deframe(char* inData,char* fdIn_One,char* flag,char* file)
 	if(strcmp(characters[3],"00010110")!=0 || strcmp(characters[4],"00010110")!=0)			//check if first 2 characters are 22 22
 	{
 		printf("Incorrect syn chars characters[3] = %s chars[4] = %s\n",characters[3],characters[4]);
-		return -1;
+		//return -1;
 	}
 	int pid;
 	pid = fork();

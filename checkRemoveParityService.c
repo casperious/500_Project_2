@@ -102,7 +102,7 @@ int checkRemoveParity(char** characters)
 			}
 			if(numOnes%2==1)
 			{
-				printf("Incorrect parity. Corrupted Data\n");
+				printf("\nIncorrect parity. Corrupted Data\n");
 			}
 			strncpy(block,characters[i]+1,7);
 		}	

@@ -141,6 +141,23 @@ void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag, char* user
 	//printf("hamming encoded outData is %s \n with length %ld\n",outData,strlen(outData));
 	//outData[outLen] = '\0';
 	//printf("Outlen is %ld\n",strlen(outData));	
+	int currPid = getpid();
+	srand(currPid);												//use current pid as seed
+	int random = rand();
+	int idx = random%outLen;									//get index to be flipped	
+	
+	if(isCap[0]=='1')
+	{
+		printf("Inserting error at index %d\n",idx);
+		if(outData[idx]=='1')
+		{
+			outData[idx]='0';
+		}
+		else
+		{
+			outData[idx]='1';
+		}
+	}
 	int pid;
 	pid = fork();
 	if(pid==0)

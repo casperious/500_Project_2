@@ -10,11 +10,11 @@
 
 int main(int argc, char *argv[]){
 	//printf("In Producer\n");
-	producer(argv[1],argv[2],argv[3],argv[4],argv[5]);
+	producer(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
 	return 0;
 }
 
-int producer(char* port, char* fl, char* buffer, char* username, char* to)
+int producer(char* port, char* fl, char* buffer, char* username, char* to, char* frameNum)
 {
 	FILE* ptr;									//input file pointer
 	FILE* binf;									//binf file pointer
@@ -43,6 +43,7 @@ int producer(char* port, char* fl, char* buffer, char* username, char* to)
 	}*/
 	
 	int portno = atoi(port);
+	int frameNo = atoi(frameNum);
 	//flag = argv[2];
 	if(fl[0]=='h')
 	{
@@ -105,12 +106,12 @@ int producer(char* port, char* fl, char* buffer, char* username, char* to)
 			if(count==64)
 			{
 				numFrames++;												//increase numFrames by 1
-				if(numFrames==3)
+				if(numFrames==frameNo)
 				{
 					newPid=fork();
 					if(newPid==0)
 					{
-						execl("errorService","errorService",str,"64",port,"0", flag, username,to,NULL);		//call error service if numFrames is 3 i.e. 3rd frame
+						execl("encoderService","encoderService",str,"64",port,"1", flag, username,to,NULL);		//call error service if numFrames is 3 i.e. 3rd frame
 					}
 					else if(newPid>0)
 					{
@@ -151,12 +152,12 @@ int producer(char* port, char* fl, char* buffer, char* username, char* to)
 	int status,options;
 	if(count>0){
 		numFrames++;
-		if(numFrames==3)																//if 3rd frame, then call errorService
+		if(numFrames==frameNo)																//if 3rd frame, then call errorService
 		{
 			pid = fork();
 			if(pid==0)
 			{
-				execl("errorService","errorService",str,countStr,port,"0",flag, username,to,NULL);
+				execl("encoderService","encoderService",str,countStr,port,"1",flag, username,to,NULL);
 			}
 			else if(pid>0)
 			{

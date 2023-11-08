@@ -16,9 +16,9 @@ int main(int argc, char *argv[])
 
 char* XOR(char* x, char* y)
 {
-	int len = strlen(y);
-	char* retString = calloc(strlen(crc_gen),sizeof(char));													//hardcoded length of divisor
-	for(int i =0;i<strlen(y);i++)
+	int len = 33;
+	char* retString = calloc(34,sizeof(char));													//hardcoded length of divisor
+	for(int i =0;i<33;i++)
 	{
 		if(x[i]==y[i])
 		{
@@ -29,6 +29,7 @@ char* XOR(char* x, char* y)
 			retString[i]='1';
 		}
 	}
+	retString[33]='\0';
 	return retString;
 }
 
@@ -56,7 +57,7 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 	//printf("-----------------------------------------\n");
 	//printf("inData with padded 0's is of length %ld is %s \n",strlen(extendedData),extendedData);
 	int i =0;
-	while(i+strlen(crc_gen)<outLen)
+	while(i+33<outLen)						//i = 534
 	{
 		//printf("Extended Data is %s\n",extendedData);
 		if(extendedData[i]=='0')
@@ -71,13 +72,13 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 				printf(" ");
 			}*/
 			//printf("%s len %ld\n",crc_gen,strlen(crc_gen));
-			char* xor_string = calloc(outLen,sizeof(char)+1);
-			char* x = calloc(strlen(crc_gen),sizeof(char)+1);
-			for(int j = i;j<strlen(crc_gen)+i;j++)
+			char* xor_string = calloc(outLen+1,sizeof(char));
+			char* x = calloc(strlen(crc_gen)+1,sizeof(char));
+			for(int j = 0;j<strlen(crc_gen);j++)
 			{
-				x[j-i] = extendedData[j];
+				x[j] = extendedData[i+j];
 			}
-			x[strlen(crc_gen)]='\0';
+			x[33]='\0';
 			for(int j =0;j<i;j++)
 			{
 				xor_string[j]='0';
@@ -86,15 +87,15 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 			char* retstring = XOR(x,crc_gen);
 			free(x);
 			x=NULL;
-			for(int j =i;j<i+strlen(crc_gen);j++)
+			for(int j =0;j<33;j++)
 			{
-				xor_string[j] = retstring[j-i];
+				xor_string[i+j] = retstring[j];
 			}
 			free(retstring);
 			retstring = NULL;
-			for(int j = i+strlen(crc_gen);j<strlen(extendedData);j++)
+			for(int j = i+33;j<strlen(extendedData);j++)
 			{
-				xor_string[j] = '0';
+				xor_string[j] = extendedData[j];
 			}
 			xor_string[outLen]='\0';
 			//printf("XOR_String is %s\n",xor_string);
@@ -109,12 +110,15 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 	}
 	char* rem = malloc(strlen(crc_gen));
 	//printf("extracting remainder from %s\n",extendedData);
-	for(int i =strlen(inData);i<outLen;i++)
+	int j =0;
+	for(int i =strlen(inData)-1;i<outLen;i++)
 	{
-		rem[i-strlen(inData)]=extendedData[i];
+		rem[j]=extendedData[i];
+		j++;
 	}
-	rem[strlen(crc_gen)-1]='\0';
-	//printf("Remainder is %s of length %ld\n",rem,strlen(rem));					//01001001000111011110011101100010 vs 01001001000111011110011101100010
+	rem[32]='\0';
+	
+	printf("Remainder is %s of length %ld\n",rem,strlen(rem));					
 	char* encodedString = malloc(outLen+1);
 	for(int i =0;i<outLen;i++)
 	{
@@ -127,7 +131,26 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 			encodedString[i] = rem[i-strlen(inData)];
 		}
 	}
-	
+	printf("encoded string is %s of length %ld\n",encodedString,strlen(encodedString));
+	int currPid = getpid();
+	srand(currPid);												//use current pid as seed
+	int random = rand();
+	int idx = random%outLen;									//get index to be flipped	
+	if(isCap[0]=='1')
+	{
+		printf("Inserting error at index %d\n",idx);
+		if(encodedString[idx]=='1')
+		{
+			encodedString[idx]='0';
+		}
+		else
+		{
+			encodedString[idx]='1';
+		}
+	}
+	encodedString[outLen]='\0';
+	printf("encoded string is %s of length %ld\n",encodedString,strlen(encodedString));
+	/*
 	char* toStart = "<TO>";
 	char* toEnd = "</TO>";
 	char* toString = calloc(18,sizeof(char));
@@ -172,16 +195,17 @@ void addCRC(char* inData, char* fdOut_One, char* isCap,char* flag, char* usernam
 	write(fdOut,finalFrame,strlen(finalFrame));						//write to pipe, be it fdOut or fdIn
 	free(toString);
 	free(fromString);
-	free(encodeString);
-	free(finalFrame);
-	
-	//printf("encoded string is %s of length %ld\n",encodedString,strlen(encodedString));
-	
-	//printf("Writing %s to socket in crc\n", encodedString);
-	//write(fdOut,encodedString,1025);
+	free(encodeString);*/
 	free(extendedData);
 	free(rem);
 	free(encodedString);
+	//free(finalFrame);
+	
+
+	
+	//printf("Writing %s to socket in crc\n", encodedString);
+	//write(fdOut,encodedString,1025);
+	
 	encodedString = NULL;
 	rem=NULL;
 	extendedData=NULL;

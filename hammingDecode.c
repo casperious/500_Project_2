@@ -89,12 +89,12 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 			}
 			if(parity%2==1 && inData[numSkip-1]!='1')							//if odd 1's, then parity bit = 1
 			{
-				printf("Incorrect parity %d at %d\n",parity,numSkip);
+				//printf("Incorrect parity %d at %d\n",parity,numSkip);
 				errPos+=numSkip;
 			}
 			else if(parity%2==0 && inData[numSkip-1]!='0')						//if even 1's, then parity bit = 0
 			{
-				printf("Incorrect parity %d at %d\n",parity,numSkip);
+				//printf("Incorrect parity %d at %d\n",parity,numSkip);
 				errPos+=numSkip;
 			}
 		i+=1;
