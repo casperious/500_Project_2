@@ -45,7 +45,7 @@ void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 	{
 		check[k] = inData[k];
 	}
-	check[strlen(inData)]='\0';	
+	check[568]='\0';	
 	//printf("check is %s with len %ld\n",check,strlen(check));
 	//printf("Comparing inData and check %d\n",strcmp(inData,check));
 	/*char* xor_string = calloc(strlen(inData),sizeof(char));
@@ -102,7 +102,7 @@ void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 			i++;
 		}
 	}*/
-	while(i+33<strlen(inData))						//i = 534
+	while(i+32<strlen(inData))						//i = 534
 	{
 		//printf("Extended Data is %s\n",extendedData);
 		if(check[i]=='0')
@@ -117,6 +117,14 @@ void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 				printf(" ");
 			}*/
 			//printf("%s len %ld\n",crc_gen,strlen(crc_gen));
+			/*printf("\n");
+			for(int j =0;j<33;j++)
+			{
+				printf("%c",check[i+j]);
+			}
+			printf("\n");
+			printf("%s \n --------------------------------------------------------------------------\n",crc_gen);
+			*/
 			char* xor_string = calloc(strlen(inData)+1,sizeof(char));
 			char* x = calloc(strlen(crc_gen)+1,sizeof(char));
 			for(int j = 0;j<strlen(crc_gen);j++)
@@ -130,6 +138,7 @@ void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 			}
 			//xor_string[outLen] = '\0';
 			char* retstring = XOR(x,crc_gen);
+			//printf("%s\n================================================================\n",retstring);
 			free(x);
 			x=NULL;
 			for(int j =0;j<33;j++)
@@ -148,12 +157,13 @@ void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 			{
 				check[j] = xor_string[j];
 			}
+			//printf("%s\n=================================================================\n",check);
 			free(xor_string);
 			xor_string = NULL;
 			i++;
 		}
 	}
-	printf("Remainder is %s\n",check);												//01001001000111011110011101100010
+	//printf("Remainder is %s\n",check);												//01001001000111011110011101100010
 	
 	//free(x);
 	//x=NULL;
@@ -165,7 +175,7 @@ void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 	{
 		if(check[j]=='1')
 		{
-			printf("\nData received has been corrupted during transmission\n");
+			printf("\n----------------------\nData received has been corrupted during transmission\n-----------------------------------\n");
 			break;
 		}
 		j++;
@@ -175,7 +185,7 @@ void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 		//printf("correct?\n");
 	}
 	free(check);
-	/*char* send = calloc(strlen(inData)-strlen(crc_gen)+2,sizeof(char));
+	char* send = calloc(strlen(inData)-strlen(crc_gen)+2,sizeof(char));
 	//strncpy(send,inData,strlen(inData)-strlen(crc_gen)+1);
 	for(int i =0;i<strlen(inData)-strlen(crc_gen)+1;i++)
 	{
@@ -197,7 +207,7 @@ void checkCRC(char* inData, char* fdIn_One, char* flag,char* file)
 	else
 	{
 		printf("Failed fork");
-	}*/
+	}
 	return;
 
 }

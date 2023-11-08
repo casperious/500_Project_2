@@ -100,7 +100,8 @@ void removeHamming(char** characters)		//char *inData, char* fdOut_One,char* isC
 		i+=1;
 	}
 	if(errPos>0){
-		printf("Flipping bit at errPos %d\n",errPos);
+		printf("\n --------------------------\n Bit at %d is corrupted \n",errPos);
+		printf("\nFlipping bit at errPos %d\n --------------------------------------\n",errPos);
 		if(inData[errPos-1]=='1')
 		{
 			inData[errPos-1]='0';

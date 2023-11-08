@@ -61,8 +61,55 @@ void delFile(char* directory, char *name)
   	}
   	}
 }
+
+void  INThandler(int sig)
+{
+     char  c;
+	 char cwd[PATH_MAX];
+	 if (getcwd(cwd, sizeof(cwd)) != NULL) {
+       //printf("Current working dir: %s\n", cwd);
+   	 }  else {
+        perror("getcwd() error");
+        return;
+   	 }
+     signal(sig, SIG_IGN);
+     printf("OUCH, did you hit Ctrl-C?\n"
+            "Do you really want to quit? [y/n] ");
+     c = getchar();
+     if (c == 'y' || c == 'Y')
+     {
+     	  FILE* clientListDel;
+		  clientListDel = fopen("clientList.txt","r");
+		  fseek(clientListDel,0,SEEK_END);
+          long fileSize = ftell(clientListDel);
+          fseek(clientListDel,0,SEEK_SET);
+          char* list = malloc(fileSize+1);
+          fread(list,fileSize,1,clientListDel);
+          list[fileSize]='\0';
+          for(int i =0;i<6;i++)
+          {
+          	if(list[i*9]=='\n'||list[i*9]=='\0')
+          	{
+          		break;
+          	}
+          	else
+          	{
+          		char* name = calloc(10,sizeof(char));
+          		strncpy(name,list+(i*9),9);
+          		delFile(cwd,name);
+          		free(name);
+          	}
+          }
+          exit(0);
+     }
+     else
+          signal(SIGINT, INThandler);
+     getchar(); // Get new line character
+}
+
 int main(int argc, char *argv[])
 {
+	signal(SIGINT, INThandler);
 	int limit = 6;
 	int count = 0;
 	char cwd[PATH_MAX];
@@ -307,7 +354,7 @@ int main(int argc, char *argv[])
                     		{
                     			to[8]='\n';
                     			to[9]='\0';
-                    			printf("To for comparison is %s\n",to);
+                    			//printf("To for comparison is %s\n",to);
                     			int idx = -1;
                     			for(int p=0;p<6;p++)
                     			{

@@ -91,6 +91,13 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 	}
 	else
 	{
+		/*FILE* ptr;
+		ptr = fopen("check.inpf","a");
+		//printf("Putting %s in check.inpf\n",frame);
+		fputs(frame,ptr);
+		fputs("\n",ptr);
+		fclose(ptr);
+		*/
 		int pid;
 		pid = fork();
 		if(pid==0)
