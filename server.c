@@ -21,6 +21,7 @@
 }
 */
 
+int clientSockets[6] = {-1,-1,-1,-1,-1,-1};
 void errorS(const char *msg)
 {
 	perror(msg);
@@ -73,33 +74,42 @@ void  INThandler(int sig)
         return;
    	 }
      signal(sig, SIG_IGN);
-     printf("OUCH, did you hit Ctrl-C?\n"
+     printf("\nOUCH, did you hit Ctrl-C?\n"
             "Do you really want to quit? [y/n] ");
      c = getchar();
      if (c == 'y' || c == 'Y')
      {
-     	  FILE* clientListDel;
-		  clientListDel = fopen("clientList.txt","r");
-		  fseek(clientListDel,0,SEEK_END);
-          long fileSize = ftell(clientListDel);
-          fseek(clientListDel,0,SEEK_SET);
-          char* list = malloc(fileSize+1);
-          fread(list,fileSize,1,clientListDel);
-          list[fileSize]='\0';
-          for(int i =0;i<6;i++)
-          {
-          	if(list[i*9]=='\n'||list[i*9]=='\0')
+     	FILE* clientListDel;
+		clientListDel = fopen("clientList.txt","r");
+		fseek(clientListDel,0,SEEK_END);
+        long fileSize = ftell(clientListDel);
+        fseek(clientListDel,0,SEEK_SET);
+        char* list = malloc(fileSize+1);
+        fread(list,fileSize,1,clientListDel);
+        list[fileSize]='\0';
+        for(int i =0;i<6;i++)
+        {
+        	if(list[i*9]=='\n'||list[i*9]=='\0')
           	{
           		break;
           	}
-          	else
-          	{
-          		char* name = calloc(10,sizeof(char));
-          		strncpy(name,list+(i*9),9);
-          		delFile(cwd,name);
-          		free(name);
-          	}
-          }
+        	else
+        	{
+        		char* name = calloc(10,sizeof(char));
+        		strncpy(name,list+(i*9),9);
+        		delFile(cwd,name);
+        		free(name);
+        	}
+    	}
+        for(int i =0;i<6;i++)
+		{
+			if(clientSockets[i]==-1)
+			{
+				break;
+			}
+			send(clientSockets[i],"Exit\n",6,0); 
+			close(clientSockets[i]);
+		}
           exit(0);
      }
      else
@@ -127,7 +137,6 @@ int main(int argc, char *argv[])
 		fputs("\n",clientList);
 	}
 	int sockfd, portno;
-	int clientSockets[6] = {-1,-1,-1,-1,-1,-1};
 	//struct usernameMap username[6];
 	char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};
 	/*char* files[30];
@@ -268,12 +277,35 @@ int main(int argc, char *argv[])
         	   		clientList = fopen("clientList.txt","r");
                     clientSockets[i] = -1;   
                     count--;
-                }   
+                }  
+                else if(strcmp(buffer,"<LOGIN_LIST></LOGIN_LIST>")==0)
+                {
+                	printf("Sending client list\n");
+                	fseek(clientList,0,SEEK_END);
+                    long fileSize = ftell(clientList);
+                    printf("client list size is %ld\n",fileSize);
+                    fseek(clientList,0,SEEK_SET);
+                    char* list = malloc(fileSize+1);
+                    fread(list,fileSize,1,clientList);
+                    list[fileSize]='\0';
+                    printf("Client list is %d\n",list[0]);
+                    if(list[0]==0||list[0]=='\n')
+                    {
+                    	send(sd,"Empty",6,0);
+                    }
+                    else
+                    {
+                    	send(sd,list,strlen(list),0);
+                	}
+                } 
                 //Echo back the message that came in  
                 else 
                 {   
                 	if(strcmp(usernames[i],"\n")==0)
                	 	{
+               	 		
+                    	//bzero(buffer,2048);
+               	 		//n = read(sd,buffer,2048);
                	 		char* usernameString = buffer;
         	  			//printf("username string read by server is %s\n",usernameString);
         	   			char* username = calloc(10,sizeof(char));

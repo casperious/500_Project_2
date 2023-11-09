@@ -45,8 +45,36 @@ int main(int argc, char *argv[])
 		errorS("ERROR connecting");
 	bzero(buffer,256);
 	n = read(sockfd,buffer,255);
-	printf("%s\n",buffer);
+	printf("%s",buffer);
 	//get loginList from server, display list of existing usernames and check entered username doesn't clash
+	n = write(sockfd,"<LOGIN_LIST></LOGIN_LIST>",26);
+	if (n < 0)
+		errorS("ERROR writing to socket");
+	bzero(buffer,256);
+	//printf("Reading client list from sockfd %d\n",sockfd);
+	n = read(sockfd,buffer,255);
+	if (n < 0)
+		errorS("ERROR reading from socket");
+	//printf("client list is %s",buffer);
+	char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};
+	//int idx = -1;
+	for(int i =0;i<6;i++)
+	{
+		char* name = calloc(10,sizeof(char));
+		strncpy(name,buffer+(i*9),8);
+		usernames[i] = name;
+	/*	if(strcmp(username,name)==0)
+		{
+			idx = i;
+			break;
+		}
+	*/	if(name[0]=='\n')
+		{
+			break;
+		}
+		printf("User %d is %s\n",i,usernames[i]);
+		//free(usernames[i]);	//comment out once checked
+	}
 	printf("Please enter username 8 characters long starting with a letter\n"); 
 	char* username = calloc(9,sizeof(char));
 	while(1)
@@ -58,20 +86,42 @@ int main(int argc, char *argv[])
 		}
 		else if((username[0]>=65 && username[0]<=90) || (username[0]>=97 && username[0]<=122))
 		{
-			char* usernameString = calloc(8+9+9+1,sizeof(char));
-			char* loginStart = "<LOGIN>";
-			char* loginEnd = "</LOGIN>";
-			strcat(usernameString,loginStart);
-			strcat(usernameString,username);
-			strcat(usernameString,loginEnd);
-			usernameString[27]='\0';
-			n = write(sockfd,usernameString,27);
-			if(n<0)
+			int idx = -1;
+			for(int i =0;i<6;i++)
 			{
-				errorS("ERROR writing username to socket\n");
+				if(strcmp(username,usernames[i])==0)
+				{
+					idx = i;
+					break;
+				}
+				if(usernames[i][0]=='\n')
+				{
+					break;
+				}
+				//printf("User %d is %s\n",i,usernames[i]);
+				//free(usernames[i]);	//comment out once checked
 			}
-			printf("Welcome %s\n",username);
-			break;
+			if(idx==-1)
+			{
+				char* usernameString = calloc(8+9+9+1,sizeof(char));
+				char* loginStart = "<LOGIN>";
+				char* loginEnd = "</LOGIN>";
+				strcat(usernameString,loginStart);
+				strcat(usernameString,username);
+				strcat(usernameString,loginEnd);
+				usernameString[27]='\0';
+				n = write(sockfd,usernameString,27);
+				if(n<0)
+				{
+					errorS("ERROR writing username to socket\n");
+				}
+				printf("Welcome %s\n",username);
+				break;
+			}
+			else
+			{
+				printf("Username is taken. Please choose another username\n");
+			}
 		}
 		else
 		{
@@ -102,7 +152,8 @@ int main(int argc, char *argv[])
 			if(strcmp(readBuffer,"Exit\n")==0)
 			{	
 				printf("Read Exit\n Closing client\n");
-				break;
+				return 0;
+				exit(0);
 			}
 			char* msg = calloc(6,sizeof(char));
             strncpy(msg,readBuffer,5);
@@ -385,7 +436,8 @@ int main(int argc, char *argv[])
 				if(strcmp(buffer,"Exit\n")==0)
 				{	
 					printf("Read Exit\n Closing client\n");
-					break;
+					return 0;
+					exit(0);
 				}
 				if (n < 0)
 					errorS("ERROR reading from socket");
