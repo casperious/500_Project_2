@@ -21,23 +21,20 @@ Args:-
 
 int decode(char** blocks)
 {
-	//printf("In decoder\n");
 	int len = 0;
 	while(blocks[len+3]!=NULL)													//get number of characters to decode
 	{
 		len++;
 	}
 	int numChars = len;
-	//printf("Numchars in decode is %d\n",numChars);
-	char* fdIn_One = blocks[1];													//get pipe fd to write to
+	char* fdIn_One = blocks[1];													//get socket fd to write to
 	char* file = blocks[2];
-	//printf("File being saved to is %s\n",file);
 	FILE* ptr;
-	if(strcmp(file,"\n")==0)
+	if(strcmp(file,"\n")==0)													//if file is \n then called by client, so don't write output to anything
 	{
 		//Do nothing
 	}
-	else
+	else																		//open client1client2.txt
 	{
 		
 		ptr = fopen(file,"a");
@@ -60,7 +57,7 @@ int decode(char** blocks)
 	sprintf(charCount,"%d",numChars+1);											//store number of characters as string to pass as arg
 	int fd;
 	sscanf(fdIn_One,"%d",&fd);													//store pipe fd as int
-	printf("%s",data);
+	printf("%s",data);															//print received data
 	
 	if(strcmp(file,"\n")==0)
 	{
@@ -68,7 +65,7 @@ int decode(char** blocks)
 	}
 	else
 	{
-		fputs(data,ptr);														//write decoded string to data.done (Capitalized)
+		fputs(data,ptr);														//write decoded string to client1client2.txt
 		fclose(ptr);
 	}
 	free(data);																//free space by malloc

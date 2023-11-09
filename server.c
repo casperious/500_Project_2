@@ -15,11 +15,6 @@
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
 #include <limits.h>
-/*struct usernameMap {
-	int i;
-	char* username;
-}
-*/
 
 int clientSockets[6] = {-1,-1,-1,-1,-1,-1};
 void errorS(const char *msg)
@@ -27,7 +22,7 @@ void errorS(const char *msg)
 	perror(msg);
 	exit(1);
 }
-void delFile(char* directory, char *name)
+void delFile(char* directory, char *name)											//scan all files in current directory and delete all txt files starting with name
 {
 	printf("Scanning %s and deleting all files starting with %s",directory,name);
 	if(strlen(name)==9){
@@ -36,20 +31,18 @@ void delFile(char* directory, char *name)
   	d = opendir(".");
   	if (d) {
     	while ((dir = readdir(d)) != NULL) {
-    		//printf("%s\n",dir->d_name);
       		if(strcmp(".",dir->d_name) == 0 ||
                 strcmp("..",dir->d_name) == 0)
                 continue;
             else
             {
-            	//printf("%s\n",dir->d_name);
-            	char* start = calloc(10,sizeof(char));
+            	char* start = calloc(10,sizeof(char));						
             	char* ext = calloc(5,sizeof(char));
-            	strncpy(start,dir->d_name,8);
+            	strncpy(start,dir->d_name,8);										//extract sender username from file name
             	start[8]='\n';
             	start[9]='\0';
-            	strncpy(ext,dir->d_name+16,4);
-            	if(strcmp(start,name)==0 && strcmp(ext,".txt")==0)
+            	strncpy(ext,dir->d_name+16,4);										//extract extension of file
+            	if(strcmp(start,name)==0 && strcmp(ext,".txt")==0)					//if file is username1username2.txt then delete
             	{
             		printf("Removing %s\n",dir->d_name);
             		remove(dir->d_name);
@@ -65,56 +58,47 @@ void delFile(char* directory, char *name)
 
 void  INThandler(int sig)
 {
-     char  c;
 	 char cwd[PATH_MAX];
-	 if (getcwd(cwd, sizeof(cwd)) != NULL) {
-       //printf("Current working dir: %s\n", cwd);
+	 if (getcwd(cwd, sizeof(cwd)) != NULL) {									//set current working directory to cwd
    	 }  else {
         perror("getcwd() error");
         return;
    	 }
-     signal(sig, SIG_IGN);
-     printf("\nOUCH, did you hit Ctrl-C?\n"
-            "Do you really want to quit? [y/n] ");
-     c = getchar();
-     if (c == 'y' || c == 'Y')
-     {
-     	FILE* clientListDel;
-		clientListDel = fopen("clientList.txt","r");
-		fseek(clientListDel,0,SEEK_END);
-        long fileSize = ftell(clientListDel);
-        fseek(clientListDel,0,SEEK_SET);
-        char* list = malloc(fileSize+1);
-        fread(list,fileSize,1,clientListDel);
-        list[fileSize]='\0';
-        for(int i =0;i<6;i++)
-        {
-        	if(list[i*9]=='\n'||list[i*9]=='\0')
-          	{
-          		break;
-          	}
-        	else
-        	{
-        		char* name = calloc(10,sizeof(char));
-        		strncpy(name,list+(i*9),9);
-        		delFile(cwd,name);
-        		free(name);
-        	}
-    	}
-        for(int i =0;i<6;i++)
+     signal(sig, SIG_IGN);														//Intercept CTRL+C
+     printf("\nShutting server\n");
+     
+     FILE* clientListDel;
+	clientListDel = fopen("clientList.txt","r");
+	fseek(clientListDel,0,SEEK_END);
+    long fileSize = ftell(clientListDel);
+    fseek(clientListDel,0,SEEK_SET);
+    char* list = malloc(fileSize+1);
+    fread(list,fileSize,1,clientListDel);									//Get list of current clients
+    list[fileSize]='\0';
+    for(int i =0;i<6;i++)
+    {
+    	if(list[i*9]=='\n'||list[i*9]=='\0')
+       	{
+       		break;
+       	}
+     	else
+      	{
+       		char* name = calloc(10,sizeof(char));
+       		strncpy(name,list+(i*9),9);
+       		delFile(cwd,name);												//Delete chat history files for all clients
+       		free(name);
+       	}
+    }
+    for(int i =0;i<6;i++)
+	{
+		if(clientSockets[i]==-1)
 		{
-			if(clientSockets[i]==-1)
-			{
-				break;
-			}
-			send(clientSockets[i],"Exit\n",6,0); 
-			close(clientSockets[i]);
+			break;
 		}
-          exit(0);
-     }
-     else
-          signal(SIGINT, INThandler);
-     getchar(); // Get new line character
+		send(clientSockets[i],"Exit\n",6,0); 								//disconnect all clients
+		close(clientSockets[i]);
+	}
+    exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -123,27 +107,20 @@ int main(int argc, char *argv[])
 	int limit = 6;
 	int count = 0;
 	char cwd[PATH_MAX];
-	if (getcwd(cwd, sizeof(cwd)) != NULL) {
-       //printf("Current working dir: %s\n", cwd);
+	if (getcwd(cwd, sizeof(cwd)) != NULL) {									//get current working directory
    	} else {
        perror("getcwd() error");
        return 1;
    	}
-	int opt=1;
+	int opt=1;																//set non interrupt socket option
 	FILE* clientList;
-	clientList = fopen("clientList.txt","w");
+	clientList = fopen("clientList.txt","w");								//create empty client list with 6 lines
 	for(int i =0;i<6;i++)
 	{
 		fputs("\n",clientList);
 	}
 	int sockfd, portno;
-	//struct usernameMap username[6];
-	char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};
-	/*char* files[30];
-	for(int i =0;i<30;i++)
-	{
-		files[i]="\n";
-	}*/
+	char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};					//initialize usernames
 	int maxClients=6;
 	fd_set readfds;
 	socklen_t clilen;
@@ -158,7 +135,7 @@ int main(int argc, char *argv[])
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);	
 	if (sockfd < 0)
 		errorS("ERROR opening socket");
-	 if( setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,  
+	 if( setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,  		//setup sockets
           sizeof(opt)) < 0 )   
     {   
         perror("setsockopt");   
@@ -189,20 +166,20 @@ int main(int argc, char *argv[])
 		
 		FD_ZERO(&readfds);   
      
-        //add master socket to set  
-        FD_SET(sockfd, &readfds);   
+        
+        FD_SET(sockfd, &readfds);   						//add master socket to set  
         max_sd = sockfd;  
-        //add child sockets to set  
-        for ( i = 0 ; i < maxClients ; i++)   
+        
+        for ( i = 0 ; i < maxClients ; i++)   				//add child sockets to set  
         {   
-        	//socket descriptor  
+        	
        		sd = clientSockets[i];      
-        	//if valid socket descriptor then add to read list  
-        	if(sd > 0)   
+        	
+        	if(sd > 0)   									//if valid socket descriptor then add to read list  
        			FD_SET( sd , &readfds);
-       		//highest file descriptor number, need it for the select function  
-   			if(sd > max_sd)   
-	   	    	max_sd = sd;   
+       		
+   			if(sd > max_sd)   								//highest file descriptor number, need it for the select function  
+	   	    	max_sd = sd;   	
       	}    
         activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);   
        
@@ -212,7 +189,7 @@ int main(int argc, char *argv[])
         }   
         
        	//If something happened on the master socket ,  
-       	 //then its an incoming connection  
+       	//then its an incoming connection  limit of 6 clients
       	if (FD_ISSET(sockfd, &readfds) && count<6)   
        	{   
         	if ((new_socket = accept(sockfd, (struct sockaddr *)&serv_addr, (socklen_t*)&clilen))<0)   
@@ -251,7 +228,6 @@ int main(int argc, char *argv[])
              	//Check if it was for closing , and also read the  
                	//incoming message  
 				valread = read( sd , buffer, 2048);
-               	//printf("%d is valread for %s\n",valread,buffer);
                	if (valread == 0)   
            		{   
                  	//Somebody disconnected , get his details and print  
@@ -264,7 +240,7 @@ int main(int argc, char *argv[])
                     {
                     	free(usernames[i]);
                     }
-                    usernames[i]="\n";
+                    usernames[i]="\n";							//set username in list to \n
                     FILE* tmp = fopen("tmp.txt","w");
                     for(int j =0;j<6;j++)
                     {
@@ -274,28 +250,25 @@ int main(int argc, char *argv[])
                     fclose(tmp);
                     remove("clientList.txt");
         	   		rename("tmp.txt","clientList.txt");
-        	   		clientList = fopen("clientList.txt","r");
+        	   		clientList = fopen("clientList.txt","r");	//remove client from clientList
                     clientSockets[i] = -1;   
                     count--;
                 }  
-                else if(strcmp(buffer,"<LOGIN_LIST></LOGIN_LIST>")==0)
+                else if(strcmp(buffer,"<LOGIN_LIST></LOGIN_LIST>")==0)		//initial read from client is login list
                 {
-                	printf("Sending client list\n");
                 	fseek(clientList,0,SEEK_END);
                     long fileSize = ftell(clientList);
-                    printf("client list size is %ld\n",fileSize);
                     fseek(clientList,0,SEEK_SET);
                     char* list = malloc(fileSize+1);
-                    fread(list,fileSize,1,clientList);
+                    fread(list,fileSize,1,clientList);						//get client list
                     list[fileSize]='\0';
-                    printf("Client list is %d\n",list[0]);
-                    if(list[0]==0||list[0]=='\n')
+                    if(list[0]==0||list[0]=='\n')							//if client list is empty, send Empty. Bug with sending nothing
                     {
                     	send(sd,"Empty",6,0);
                     }
                     else
                     {
-                    	send(sd,list,strlen(list),0);
+                    	send(sd,list,strlen(list),0);						//If populated, send list
                 	}
                 } 
                 //Echo back the message that came in  
@@ -304,12 +277,10 @@ int main(int argc, char *argv[])
                 	if(strcmp(usernames[i],"\n")==0)
                	 	{
                	 		
-                    	//bzero(buffer,2048);
-               	 		//n = read(sd,buffer,2048);
-               	 		char* usernameString = buffer;
-        	  			//printf("username string read by server is %s\n",usernameString);
+                    	
+               	 		char* usernameString = buffer;						
         	   			char* username = calloc(10,sizeof(char));
-        	   			strncpy(username,usernameString+7,8);
+        	   			strncpy(username,usernameString+7,8);				//extract username from buffer
         	   			
         	   			username[8]='\n';
         	   			username[9]='\0';
@@ -318,84 +289,70 @@ int main(int argc, char *argv[])
         	   			FILE* tmp = fopen("tmp.txt","w");
         	   			for(int j=0;j<6;j++)
         	   			{
-        	   				//printf("Writing %s to tmp\n",usernames[j]);
-        	   				fputs(usernames[j],tmp);
+        	   				fputs(usernames[j],tmp);						
         	   			}
         	   			fclose(clientList);
         	   			fclose(tmp);
         	   			remove("clientList.txt");
-        	   			rename("tmp.txt","clientList.txt");
+        	   			rename("tmp.txt","clientList.txt");					//write updated usernames to clientList
         	   			clientList = fopen("clientList.txt","r");
         	   			
                	 	}
                	 	else
                	 	{
-                    	//set the string terminating NULL byte on the end  
-                    	//of the data read  
-                    	//buffer[valread] = '\0';  
-                    	//printf("buffer is %s\n",buffer); 
+                    	
                     	char* msg = calloc(6,sizeof(char));
                     	char* loginList = calloc(13,sizeof(char));
                     	char* logout = calloc(9,sizeof(char));
-                    	strncpy(logout,buffer,8);
-                    	strncpy(loginList,buffer,12);
-                    	strncpy(msg,buffer,5);
+                    	strncpy(logout,buffer,8);							//extract <LOGOUT>
+                    	strncpy(loginList,buffer,12);						//extract <LOGIN_LIST>
+                    	strncpy(msg,buffer,5);								//extract <MSG>
                     	if(strcmp(msg,"<MSG>")==0)
                     	{
-                    		//printf("In MSG server %s \n", buffer);
                     		char* messageContents = calloc(strlen(buffer)-5-6,sizeof(char));
                     		strncpy(messageContents,buffer+5,strlen(buffer)-5-6);
-                    		//printf("Message contents are %s\n",messageContents);
                     		char* from = calloc(9,sizeof(char));
                     		char* to = calloc(10,sizeof(char));
                     		char* encode = calloc(2,sizeof(char));
                     		char* body = calloc(strlen(messageContents)-69,sizeof(char));
                     		char* save = calloc(24,sizeof(char));
-                    		strncpy(from,messageContents+6,8);
+                    		strncpy(from,messageContents+6,8);				//extract sender username
                     		from[8]='\0';
-                    		//printf("From is %s\n",from);
-                    		strncpy(to,messageContents+25,8);
+                    		strncpy(to,messageContents+25,8);				//extract receiver username
                     		to[8]='\0';
-                    		//printf("To is %s\n", to);
                     		strncpy(save,from,8);
                     		strcat(save,to);
-                    		strcat(save,".txt\0");
-                    		//printf("File to save to is %s\n",save);
+                    		strcat(save,".txt\0");							//set chat history txt file name
                     		strncpy(encode,messageContents+46,1);
-                    		encode[1]='\0';
-                    		//printf("Encode is %s\n",encode);
-                    		strncpy(body,messageContents+62,strlen(messageContents)-69);
-                    		//printf("Body contents are %s\n",body);
+                    		encode[1]='\0';									//extract encode data
+                    		strncpy(body,messageContents+62,strlen(messageContents)-69);	//extract text within body tags
                     		int pid;
                     		pid = fork();
-                    		if(pid==0)
+                    		if(pid==0)										//child processes data and saves to chat history
                     		{
                     			char sock[4];
-								sprintf(sock,"%d",sd);	
+								sprintf(sock,"%d",sd);						//used to pass socket as argument
                     			if(encode[0]=='h')
                     			{
-                    				//printf("Calling deframe with save file %s\n",save);
-                    				execl("deframe","deframe",body,sock,encode,save,NULL);			//call deframe for every frame read
+                    				execl("deframe","deframe",body,sock,encode,save,NULL);			//call deframe for every frame read if encode is hamming
                     			}
                     			else
                     			{
-                    				execl("crcCheck","crcCheck",body,sock,encode,save,NULL);
+                    				execl("crcCheck","crcCheck",body,sock,encode,save,NULL);		//check CRC32 encoding on frame
                     			}
                     		}
-                    		else if(pid>0)
+                    		else if(pid>0)											//parent sends message directly to receiver
                     		{
                     			to[8]='\n';
                     			to[9]='\0';
-                    			//printf("To for comparison is %s\n",to);
                     			int idx = -1;
                     			for(int p=0;p<6;p++)
                     			{
-                    				//printf("Comparing to with %s\n",usernames[p]);
                     				if(usernames[p][0]=='\n')
                     				{
                     					break;
                     				}
-                    				if(strcmp(to,usernames[p])==0)
+                    				if(strcmp(to,usernames[p])==0)					//if receiver username exists, then send message to receiver
                     				{
                     					idx=p;
                     					break;
@@ -423,9 +380,8 @@ int main(int argc, char *argv[])
                     		long fileSize = ftell(clientList);
                     		fseek(clientList,0,SEEK_SET);
                     		char* list = malloc(fileSize+1);
-                    		fread(list,fileSize,1,clientList);
+                    		fread(list,fileSize,1,clientList);					//get current client list and send
                     		list[fileSize]='\0';
-                    		//printf("Client list is %s\n",list);
                     		send(sd,list,strlen(list),0);
                     	}
                     	else if(strcmp(logout,"<LOGOUT>")==0)
@@ -435,7 +391,7 @@ int main(int argc, char *argv[])
                     		//Close the socket and mark as -1in list for reuse 
                     		send(sd,"Exit\n",6,0); 
                     		close( sd );   
-                    		delFile(cwd,usernames[i]);
+                    		delFile(cwd,usernames[i]);					//delete all chat history files of client
                     		free(usernames[i]);
                     		usernames[i]="\n";
                     		FILE* tmp = fopen("tmp.txt","w");
@@ -447,7 +403,7 @@ int main(int argc, char *argv[])
                     		fclose(tmp);
                     		remove("clientList.txt");
         	   				rename("tmp.txt","clientList.txt");
-        	   				clientList = fopen("clientList.txt","r");
+        	   				clientList = fopen("clientList.txt","r");		//update client list
                     		clientSockets[i] = -1;   
                     		count--;
                     	}

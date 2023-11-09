@@ -17,9 +17,11 @@ Go through all characters and break them into chunks of 7. check for odd parity,
 
 Args:-
 	inData - 7 character binary encoded data, length + chars
-	fdOut_One - pipe file descriptor to write to
-	isCap - 0 if producer called, 1 if consumer called
+	fdOut_One - socket file descriptor to write to
+	isCap - 0 if no error generation, 1 if error generation
 	flag= flag for hamming or crc
+	username = sender username
+	to = receiver username
 */
 void addParity(char *inData, char* fdOut_One,char* isCap,char* flag, char* username, char* to)
 {
@@ -69,10 +71,8 @@ void addParity(char *inData, char* fdOut_One,char* isCap,char* flag, char* usern
 		}
 		else
 		{
-			//execl("crcAdd","crcAdd",outData,fdOut_One,isCap,NULL);
-			execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,flag,username,to,NULL);		//call buildFrameService with 8 char, parity bit, binary encoded string, fd to write to, and isCap
+			execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,flag,username,to,NULL);		//call buildFrameService with 8 char, parity bit, binary encoded string, fd to write to, isCap, encoder flag, sender and reciever usernames
 		}
-		//execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,NULL);		//call buildFrameService with 8 char, parity bit, binary encoded string, fd to write to, and isCap
 	}
 	else if(pid>0)
 	{

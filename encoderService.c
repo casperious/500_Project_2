@@ -18,16 +18,17 @@ Converts length and <=64 character frame each into 7 character long binary encod
 Args:-
 	inData = string to be encoded
 	len = length of string to be encoded
-	fdOut_One = file descriptor for pipe to write to. Different if producer is calling, or if consumer's child is calling it.
-	isCap = flag to check if consumer child is calling, or if producer is.
+	fdOut_One = file descriptor for socket to write to
+	isCap = flag to check if error is to be generated. "1" if error, "0" if none
 	flag = flag for hamming or crc
+	username = sender username
+	to = receiver username
 */
 int encode(char *inData,char* len, char* fdOut_One, char* isCap,char* flag, char* username, char* to){
 	char bin[1025]="";												//binary encoding of length + characters
 	int length;
 	sscanf(len,"%d",&length);										//storing len as an int
 	int num = length;
-	//printf("length of input is %d\n",num);
 	int j =6;
 	char res[7]="0000000";
 	while(num>0)													//converting length of string into its binary encoded 7 character string
@@ -56,7 +57,7 @@ int encode(char *inData,char* len, char* fdOut_One, char* isCap,char* flag, char
 	int pid;
 	pid = fork();
 	if(pid==0){
-		execl("parityAddService","parityAddService",bin,fdOut_One,isCap,flag,username,to,NULL);			//call parityAddService with binary encoded string, fd to write to, isCap
+		execl("parityAddService","parityAddService",bin,fdOut_One,isCap,flag,username,to,NULL);			//call parityAddService with binary encoded string, fd to write to, isCap for error, flag for encoder, sender and receiver username
 	}
 	else if(pid>0)
 	{

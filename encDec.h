@@ -14,3 +14,4 @@ int checkRemoveParity(char** characters);
 int error(char *inData, char* len, char* fdOut_One,char* isCap,char* flag,char* username, char* to);
 int server();
 int client();
+

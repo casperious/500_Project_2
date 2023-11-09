@@ -12,13 +12,15 @@ int main(int argc, char *argv[])
 }
 
 /*
-Hardcode syn characters binary and prepend to inData. Write finished frame to data.binf if isCap = "0", or data.chck if isCap="1". Then write to pipe fd sent in arg
+Hardcode syn characters binary and prepend to inData. Send finished frame to socket if encoder flag is h, send to crcAdd for encoding if flag is c
 
 Args:-
-	inData - 8 character, parity bit, binary encoded string
-	fdOut_One - pipe file descriptor to write to
-	isCap - "0" if parent is producer, "1" if parent is consumer
-
+	inData - 8 character, parity bit, binary encoded string, either hamming encoded, or to be sent to crc for encoding
+	fdOut_One - socket file descriptor to write to
+	isCap - "0" if no error is generated, "1" if error is generated
+	flag - h for hamming, c for crc
+	username - sender username
+	to - receiver username
 */
 
 void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* username, char* to){
@@ -29,19 +31,7 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 	strncat(frame,syn,8);											//add 2222 to frame	
 	strncat(frame,syn,8);
 	strncat(frame,inData,strlen(inData));							//concat inData to 2222
-	FILE *fp;
-	if(strcmp(isCap,"0")==0)										//not capitalized. Producer data flow. 			
-	{
-		fp = fopen("data.binf","a");								//write to data.binf
-		fputs(frame,fp);
-	}
-	else															//capitalized, called from consumer
-	{
-		fp = fopen("data.chck","a");								//write to data.chck
-		fputs(frame,fp); 	
-	}
-	fclose(fp);												//close file written to
-	//printf("Writing %s of length %ld to %d\n",frame,strlen(frame),fdOut);
+	
 	if(flag[0]=='h')
 	{
 		char* toStart = "<TO>";
@@ -50,29 +40,26 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 		strcat(toString,toStart);
 		strcat(toString,to);
 		strcat(toString,toEnd);
-		toString[17]='\0';
-		//printf("To is %s\n",toString);
+		toString[17]='\0';											//Create <TO> tag
 		char* fromStart = "<FROM>";
 		char* fromEnd = "</FROM>";
 		char* fromString = calloc(22,sizeof(char));
 		strcat(fromString, fromStart);
 		strcat(fromString,username);
 		strcat(fromString,fromEnd);
-		fromString[21]='\0';
-		//printf("From is %s\n",fromString);
+		fromString[21]='\0';										//create <FROM> tag
 		char* encodeStart = "<ENCODE>";
 		char* encodeEnd = "</ENCODE>";
 		char* encodeString = calloc(26,sizeof(char));
 		strcat(encodeString, encodeStart);
 		strcat(encodeString,flag);
 		strcat(encodeString,encodeEnd);
-		encodeString[25]='\0';
-		//printf("Encode is %s\n",encodeString);
+		encodeString[25]='\0';										//create <ENCODE> tag
 		char* msgStart = "<MSG>";
 		char* msgEnd = "</MSG>";
 		char* bodyStart = "<BODY>";
 		char* bodyEnd = "</BODY>";
-		char* finalFrame = calloc(90+sizeof(frame)+1,sizeof(char));
+		char* finalFrame = calloc(90+sizeof(frame)+1,sizeof(char));	
 		strcat(finalFrame,msgStart);
 		strcat(finalFrame,fromString);
 		strcat(finalFrame,toString);
@@ -81,9 +68,8 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 		strcat(finalFrame,frame);
 		strcat(finalFrame,bodyEnd);
 		strcat(finalFrame,msgEnd);
-		finalFrame[strlen(finalFrame)] = '\0';
-		//printf("Writing %s to socket\n",finalFrame);
-		write(fdOut,finalFrame,strlen(finalFrame));						//write to pipe, be it fdOut or fdIn
+		finalFrame[strlen(finalFrame)] = '\0';						//create full <MSG> tag to be sent
+		write(fdOut,finalFrame,strlen(finalFrame));					//send <MSG> message to socket
 		free(toString);
 		free(fromString);
 		free(encodeString);
@@ -91,18 +77,11 @@ void buildFrame(char *inData,char* fdOut_One,char* isCap,char* flag, char* usern
 	}
 	else
 	{
-		/*FILE* ptr;
-		ptr = fopen("check.inpf","a");
-		//printf("Putting %s in check.inpf\n",frame);
-		fputs(frame,ptr);
-		fputs("\n",ptr);
-		fclose(ptr);
-		*/
 		int pid;
 		pid = fork();
 		if(pid==0)
 		{
-			execl("crcAdd","crcAdd",frame,fdOut_One,isCap,flag,username,to,NULL);
+			execl("crcAdd","crcAdd",frame,fdOut_One,isCap,flag,username,to,NULL);	//send built frame only with SYN chars added, no tags, to crcAdd 
 		}
 		else if(pid>0)
 		{

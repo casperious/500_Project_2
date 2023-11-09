@@ -13,20 +13,19 @@ int main(int argc, char* argv[])
 
 /*
 
-Break down data read from pipe into 8 character blocks. Check if first 2 blocks = SYN parity bit binary encoded values
+Break down data read from socket into 8 character blocks. Check if first 2 blocks = SYN parity bit binary encoded values
 
 Args:-
-	inData - data from pipe
+	inData - data from socket
 	fdIn_One - file descriptor to write to
-
+	flag - encoder flag, h for hamming, c for crc
+	file - '\n' if called by client, user1user2.txt if called by server
 */
 
 int deframe(char* inData,char* fdIn_One,char* flag,char* file)
 {
-	//printf("In Deframe\n");
-	//char* characters[69]={"checkRemoveParityService",fdIn_One};				//intialize argument string for execv with service name, pipe fd
 	char* characters[100]={};
-	if(flag[0]=='h')
+	if(flag[0]=='h')														//set next function argument to hammingDecode or checkRemoveParityService based on flag
 	{
 		characters[0] = "hammingDecode";
 	}
@@ -34,11 +33,8 @@ int deframe(char* inData,char* fdIn_One,char* flag,char* file)
 	{
 		characters[0] = "checkRemoveParityService";
 	}
-	//printf("%s\n",characters[0]);
-	//printf("Read %s in deframe\n",inData);
 	characters[1] = fdIn_One;
 	characters[2] = file;
-	//printf("file in deframe is %s\n",characters[2]);
 	int j =0;
 	int k =3;
 	char block[9]="00000000";
@@ -53,33 +49,17 @@ int deframe(char* inData,char* fdIn_One,char* flag,char* file)
 		{
 			characters[k]=strdup(block);									//save block into characters[k]
 			j = 0;
-			/*if((strlen(inData)-i)<=7)
-			{
-				k++;
-				strncpy(characters[k],inData+i,strlen(inData)+1-i);
-				printf("last block is %s\n",characters[k]);
-				break;
-			}*/
 			block[j]=inData[i];
 			j++;
 			k++;
 		}
 	}
 	if(j>1){
-	//printf("last block outside loop is %s %d %s\n", characters[k],j,block);
-	characters[k] = strdup(block);											//to get remainder bits
-	//printf("last block outside loop is %s %d %s %ld\n", characters[k],j,block,strlen(characters[k]));
-	}/*
-	char* end = "";
-	for(int i =0;i<j;i++)
-	{
-		strncat
+		characters[k] = strdup(block);											//to get remainder bits
 	}
-	*/
 	if(strcmp(characters[3],"00010110")!=0 || strcmp(characters[4],"00010110")!=0)			//check if first 2 characters are 22 22
 	{
 		printf("Incorrect syn chars characters[3] = %s chars[4] = %s\n",characters[3],characters[4]);
-		//return -1;
 	}
 	int pid;
 	pid = fork();
@@ -87,14 +67,12 @@ int deframe(char* inData,char* fdIn_One,char* flag,char* file)
 	{
 		if(flag[0]=='h')
 		{
-			//printf("calling hammingDecode\n");
-			execv("hammingDecode",characters);
+			execv("hammingDecode",characters);								//call hammingDecode if flag is h
 		}
 		else
 		{
-			execv("checkRemoveParityService",characters);	
+			execv("checkRemoveParityService",characters);					//call checkRemoveParityService if flag is c
 		}
-		//execv("checkRemoveParityService",characters);						//call checkRemoveParityService with arg string
 	}
 	else if(pid>0)
 	{

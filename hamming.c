@@ -10,18 +10,28 @@ int main(int argc, char *argv[])
 	addHamming(argv[1],argv[2],argv[3],argv[4],argv[5],argv[6]);
 	return 0;
 }
+/*
+
+Encode frame using hamming encoding. Add 0 as parity bits in p1,p2,p4 and all powers of 2 within string length, check even parity and set parity bit values accordingly
+
+Args:-
+	inData - data from socket
+	fdOut_One - socket to write to
+	isCap - flag to indicate to add error. "1" if error to be added, "0" if not.
+	flag - encoder flag, h for hamming, c for crc
+	username - sender username
+	to - receiver username
+*/
 
 void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag, char* username, char* to)
 {
 	
 	int len = strlen(inData);
-	//printf("%s is of length %d\n",inData,len);
 	int numParityBits = 1;
-	while(1)																//calculate #parity bits by checking if 2^r >= m + r + 1 [r = #parity bits, m = len of input]
+	while(1)															//calculate #parity bits by checking if 2^r >= m + r + 1 [r = #parity bits, m = len of input]
 	{
 		int bitNum = pow(2,numParityBits);
 		int check = len + numParityBits + 1;
-		//printf("%d\n",bitNum);
 		if(bitNum<check)
 		{
 			numParityBits+=1;
@@ -31,68 +41,31 @@ void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag, char* user
 			break;
 		}
 	}
-	//printf("Number of parity bits to add is %d\n",numParityBits);
 	int outLen = len+numParityBits+1;
-	//printf("outLen is %d\n",outLen);
-	//printf("2^r is %f\n",pow(2,numParityBits));
-	/*if(pow(2,numParityBits)>=outLen)
-	{
-		printf("Correct\n");
-	}*/
 	char* outData = calloc(outLen+1,sizeof(char));
-	//printf("%s\n",outData);
 	for(int i =0;i<len+numParityBits;i++)
 	{
 		outData[i]='0';
 	}
 	outData[strlen(outData)]='\0';
-		
-	/*for(int i =0;i<outLen;i++)
-	{
-		printf("%c",outData[i]);
-	}
-	
-	printf(" of length %ld\n",strlen(outData));*/
 	int k =0;
-	//for(int i =0;i<numParityBits;i++)
-	//{
-	//	int idx = pow(2,i);
 	for(int j =1;j<outLen;j++)
 	{
 		if(ceil(log2(j))==floor(log2(j)))				//power of 2
 		{
-			//printf("Skipping %c at idx %d\n",outData[j-1],j-1);
 		}
 		else
 		{
-			//printf("outData[%d] is %c\n",j-1,outData[j-1]);
 			outData[j-1]=inData[k];
-			//printf("outData[%d] is now %c\n",j-1,outData[j-1]);
 			k++;
 		}
 	}
 	
-	//}
-	//printf("data with 0's in powers of 2\n");
-	/*for(int i =1;i<outLen;i++)
-	{
-		if(ceil(log2(i))==floor(log2(i)))
-		{
-			printf("p%d ",i);
-		}
-		else
-		{
-			printf("%c",outData[i-1]);
-		}
-	}*/
-	//printf(" with length %ld\n",strlen(outData));
 	
-	//printf("checking and setting parity bits\n");
 	
 	for(int i =0;i<numParityBits;i++)
 	{
-		int numSkip = pow(2,i);
-		//printf("checking %d and skipping %d on %s\n",numSkip,numSkip,outData);
+		int numSkip = pow(2,i);							//get number of bits to skip
 		int up = 0;
 		int down = 0;
 		int parity = 0;
@@ -100,11 +73,10 @@ void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag, char* user
 		{
 			 if(up<numSkip)
 			 {
-			 	//printf("checking %d is %c\n",j,outData[j]);
+			 	
 			 	down =0;
-			 	if(j==numSkip-1)
+			 	if(j==numSkip-1)						//dont count parity
 			 	{
-			 		//printf("not counting parity at %d\n",j);
 			 	}
 			 	if(outData[j]=='1' && j!=numSkip-1)
 			 	{
@@ -114,7 +86,6 @@ void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag, char* user
 			 }
 			 else
 			 {
-			 	//printf("Skipping %d\n",j);
 			 	down++;
 			 	if(down>=numSkip)
 			 	{
@@ -132,21 +103,13 @@ void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag, char* user
 			outData[numSkip-1]='0';
 		}
 	
-	}/*
-	for(int i =0;i<outLen;i++)
-	{
-		printf("%c",outData[i]);
 	}
-	printf(" with length %ld\n",strlen(outData));	*/			//001011101111 vs 111011101111
-	//printf("hamming encoded outData is %s \n with length %ld\n",outData,strlen(outData));
-	//outData[outLen] = '\0';
-	//printf("Outlen is %ld\n",strlen(outData));	
 	int currPid = getpid();
 	srand(currPid);												//use current pid as seed
 	int random = rand();
 	int idx = random%outLen;									//get index to be flipped	
 	
-	if(isCap[0]=='1')
+	if(isCap[0]=='1')											//generate error if isCap is 1
 	{
 		printf("Inserting error at index %d\n",idx);
 		if(outData[idx]=='1')
@@ -162,7 +125,7 @@ void addHamming(char *inData, char* fdOut_One,char* isCap,char* flag, char* user
 	pid = fork();
 	if(pid==0)
 	{
-		execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,flag,username,to,NULL);
+		execl("buildFrameService","buildFrameService",outData,fdOut_One,isCap,flag,username,to,NULL);	//call buildFrameService
 	}
 	else if(pid>0)
 	{
