@@ -52,21 +52,28 @@ int main(int argc, char *argv[])
 		errorS("ERROR writing to socket");
 	bzero(buffer,256);
 	n = read(sockfd,buffer,255);					//get client list from server
-	printf("%s",buffer);
 	if (n < 0)
 		errorS("ERROR reading from socket");
-	char* usernames[6] = {"\n","\n","\n","\n","\n","\n"};	//initialize usernames
-	for(int i =0;i<6;i++)
+	char* usernames[6] = {"\n\0","\n\0","\n\0","\n\0","\n\0","\n\0"};	//initialize usernames
+	int nameCount=0;
+	for(int i =0;i<6;i++)					
 	{
+		int start_idx = i*9;
+		while(buffer[start_idx]=='\n' && start_idx<strlen(buffer))
+		{
+			start_idx++;
+		}
 		char* name = calloc(9,sizeof(char));
-		strncpy(name,buffer+(i*10),8);
-		usernames[i] = name;								//set current usernames
-		usernames[i][8]='\0';
+		strncpy(name,buffer+start_idx,8);
+		usernames[nameCount] = name;								//set current usernames
+		usernames[nameCount][8]='\0';
+		nameCount++;
 	}
 	printf("\nPlease enter username 8 characters long starting with a letter\n"); 
 	char* username = calloc(9,sizeof(char));
 	while(1)
 	{
+		bzero(username,9);
 		scanf("%s",username);
 		username[8]='\0';
 		if(strlen(username)!=8)
@@ -389,6 +396,10 @@ int main(int argc, char *argv[])
 			
 		}
 		close(sockfd);
+	}
+	for(int i =0;i<6;i++)
+	{
+		free(usernames[i]);
 	}
 	return 0;
 }
